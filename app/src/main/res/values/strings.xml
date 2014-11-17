@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- app level -->
+    <string name="app_name">ExpenseReport</string>
+
+    <!-- activity level -->
+    <string name="title_activity_launch_test">LaunchTest</string>
+    <string name="title_activity_view_expenses">View Expenses</string>
+    <string name="title_activity_enter_expenses">Enter Expenses</string>
+    <string name="title_activity_view_categories">View Categories</string>
+    <string name="title_activity_view_users">View Users</string>
+
+    <!-- view level -->
+    <string name="begin">Begin</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="enter_expense">Enter expense</string>
+    <string name="cost">Cost:</string>
+    <string name="cost_eg">e.g. 32.50</string>
+    <string name="description">Description:</string>
+    <string name="description_eg">e.g. Coffee</string>
+    <string name="save">Save</string>
+    <string name="view_expenses">View expenses</string>
+    <string name="view_categories">View categories</string>
+    <string name="view_users">Select account</string>
+    <string name="add_new">Add new</string>
+
+    <string name="ok">Add</string>
+    <string name="cancel">Cancel</string>
+
+
+</resources>
