@@ -36,8 +36,9 @@ public class ViewExpenses extends ListActivity {
      * Gets the all the expenses for a particular category.
      */
     private void populateExpenses() {
-        // retrieve all expenses for the user and category and today
-        List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH) + 1, date.get(Calendar.YEAR));
+        // retrieve all expenses for the user and category and this month and year
+        List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH) + 1,
+                date.get(Calendar.YEAR));
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
@@ -46,10 +47,9 @@ public class ViewExpenses extends ListActivity {
     }
 
     /**
-     * Method to record a new expense. Called when button in view is clicked.
-     * @param v The view.
+     * Method to record a new expense. Called when Add button in action bar is clicked.
      */
-    public void addExpense(View v) {
+    public void addExpense() {
         // build dialog to ask for expense details
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Record expense");
@@ -175,7 +175,10 @@ public class ViewExpenses extends ListActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_new) {
+            addExpense();
+            return true;
+        } else if (id == R.id.action_settings) {
             return true;
         }
         return super.onOptionsItemSelected(item);

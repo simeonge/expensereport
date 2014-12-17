@@ -65,10 +65,9 @@ public class ViewCategories extends ListActivity {
     }
 
     /**
-     * Method to add a new category. Called when button in view is clicked.
-     * @param v The view.
+     * Method to add a new category. Called when Add button in action bar is clicked.
      */
-    public void addCategory(View v) {
+    public void addCategory() {
         // build dialog to ask for category
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create category");
@@ -171,9 +170,12 @@ public class ViewCategories extends ListActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // as you specify a w activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_new) {
+            addCategory();
+            return true;
+        } else if (id == R.id.action_settings) {
             return true;
         }
         return super.onOptionsItemSelected(item);

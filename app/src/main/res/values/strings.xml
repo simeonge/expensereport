@@ -5,11 +5,11 @@
     <string name="app_name">ExpenseReport</string>
 
     <!-- activity level -->
-    <string name="title_activity_launch_test">LaunchTest</string>
-    <string name="title_activity_view_expenses">View Expenses</string>
+    <string name="title_activity_launch_test">CoinTest</string>
+    <string name="title_activity_view_expenses">Expenses</string>
     <string name="title_activity_enter_expenses">Enter Expenses</string>
-    <string name="title_activity_view_categories">View Categories</string>
-    <string name="title_activity_view_users">View Users</string>
+    <string name="title_activity_view_categories">Categories</string>
+    <string name="title_activity_view_users">Users</string>
 
     <!-- view level -->
     <string name="begin">Begin</string>
@@ -26,8 +26,11 @@
     <string name="view_users">Select account</string>
     <string name="add_new">Add new</string>
 
+    <!-- fragment level -->
     <string name="ok">Add</string>
     <string name="cancel">Cancel</string>
 
+    <!-- action bar level -->
+    <string name="add">Add</string>
 
 </resources>

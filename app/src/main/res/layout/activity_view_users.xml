@@ -24,16 +24,8 @@
 
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="match_parent"
         android:id="@android:id/list"
         />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:text="@string/add_new"
-        android:id="@+id/addu"
-        android:onClick="addUser"/>
 
 </LinearLayout>

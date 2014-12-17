@@ -31,6 +31,9 @@ public class ViewUsers extends ListActivity {
     /** Intent extra tag for selected user. */
     public static final String CURRENT_USER = "com.simgeoapps.expensereport.CURRENTUSER";
 
+    /**
+     * Method to populate the list view all users.
+     */
     private void populateListView() {
         // get all users from db
         List<User> values = uSource.getAllUsers();
@@ -57,7 +60,10 @@ public class ViewUsers extends ListActivity {
         });
     }
 
-    public void addUser(View v) {
+    /**
+     * Method to add a new user, called when the Add button the action bar is clicked.
+     */
+    public void addUser() {
         // build dialog to ask for name of user
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create user");
@@ -158,7 +164,10 @@ public class ViewUsers extends ListActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_new) {
+            addUser();
+            return true;
+        } else if (id == R.id.action_settings) {
             return true;
         }
 
