@@ -6,15 +6,19 @@ import android.app.ListActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.Calendar;
@@ -32,6 +36,70 @@ public class ViewExpenses extends ListActivity {
 
     private static Calendar date;
 
+    private ActionMode aMode;
+
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.context_expenses, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_del:
+                    // delete selected expense
+                    // get list view and list adapter
+                    ListView lv = getListView();
+                    ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+                    int pos = lv.getCheckedItemPosition(); // get pos of selected item
+                    Expense del = aa.getItem(pos); // get item in adapter at position pos
+                    exSource.deleteExpense(del); // delete selected item from db
+                    aa.remove(del); // remove selected item from adapter
+                    // getListView().setItemChecked(pos, false); // no need, item is removed
+                    aa.notifyDataSetChanged();
+
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // Called when the user exits the action mode
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            // unselect item that was selected (if it wasn't deleted)
+            final ListView lv = getListView();
+            lv.clearChoices();
+            lv.setItemChecked(lv.getCheckedItemPosition(), false);
+            // ((ArrayAdapter<Expense>) getListAdapter()).notifyDataSetChanged();
+            // prevent item selection when context menu is inactive
+            // doesn't work if called in same thread and item remains highlighted;
+            // calling from new thread as a work around
+            lv.post(new Runnable() {
+                @Override
+                public void run() {
+                    lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
+                }
+            });
+            aMode = null;
+        }
+    };
+
     /**
      * Gets the all the expenses for a particular category.
      */
@@ -42,8 +110,24 @@ public class ViewExpenses extends ListActivity {
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
-                android.R.layout.simple_list_item_1, exs);
+                android.R.layout.simple_list_item_activated_1, exs);
         setListAdapter(aa);
+
+        // getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            // Called when the user long-clicks on an item
+            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                if (aMode != null) {
+                    return false;
+                }
+                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                // mark item at position i as selected
+                getListView().setItemChecked(i, true);
+                // Start the CAB using the ActionMode.Callback defined above
+                aMode = ViewExpenses.this.startActionMode(mActionModeCallback);
+                return true;
+            }
+        });
     }
 
     /**

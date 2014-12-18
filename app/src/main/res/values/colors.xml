@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="default_color">#FFFFFF</color>
+    <color name="selected_color">#F7A22E</color>
+</resources>

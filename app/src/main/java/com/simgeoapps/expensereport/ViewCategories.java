@@ -55,7 +55,7 @@ public class ViewCategories extends ListActivity {
                 Category cat = new Category();
                 cat.setCategory(name);
 
-                // pass user to ViewCategories activity using the intent
+                // pass user + category to ViewExpenses activity using the intent
                 Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
                 intent.putExtra(ViewUsers.CURRENT_USER, curUser.getName());
                 intent.putExtra(CURRENT_CATEGORY, cat.getCategory());

@@ -32,5 +32,6 @@
 
     <!-- action bar level -->
     <string name="add">Add</string>
+    <string name="del">Del</string>
 
 </resources>
