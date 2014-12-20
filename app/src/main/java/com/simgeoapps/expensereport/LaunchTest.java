@@ -7,28 +7,61 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.Calendar;
+import java.util.List;
+
 /**
  * Test Launcher activity.
  * @author Simeon
  */
 public class LaunchTest extends Activity {
 
+    private UserDao uSource;
+
+    private Calendar date;
+
     /**
      * Called when the begin button is clicked. Starts the ViewUsers activity.
      * @param vi The view.
      */
     public void begin(View vi) {
-        // start user activity
-        Intent intent = new Intent(this, ViewUsers.class);
-        startActivity(intent);
+        // here pass current month and year, and default/only user, and
+        List<User> lu = uSource.getAllUsers();
+
+        // if we have only one user, go directly to categories class
+        if (lu.size() == 1) {
+            Intent it = new Intent(this, ViewCategories.class);
+            User soleUser = lu.get(0);
+            it.putExtra(IntentTags.CURRENT_USER, soleUser);
+            it.putExtra(IntentTags.CURRENT_DATE, date);
+            startActivity(it); // start category activity
+        } else {
+            Intent intent = new Intent(this, ViewUsers.class);
+            startActivity(intent); // start category activity
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_test);
+
+        uSource = new UserDao(this);
+        uSource.open();
+        date = Calendar.getInstance();
     }
 
+    @Override
+    protected void onResume() {
+        uSource.open();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        uSource.close();
+        super.onPause();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

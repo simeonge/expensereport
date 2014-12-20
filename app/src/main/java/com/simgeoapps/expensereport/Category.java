@@ -1,10 +1,12 @@
 package com.simgeoapps.expensereport;
 
+import java.io.Serializable;
+
 /**
  * Category model.
  * Created by Simeon on 10/5/2014.
  */
-public class Category {
+public class Category implements Serializable{
     // fields corresponding to the category table columns
     private int id;
     private String usermame;

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.view.ActionMode;
@@ -77,9 +78,10 @@ public class ViewExpenses extends ListActivity {
                     Expense del = aa.getItem(pos); // get item in adapter at position pos
                     exSource.deleteExpense(del); // delete selected item from db
                     aa.remove(del); // remove selected item from adapter
-                    // getListView().setItemChecked(pos, false); // no need, item is removed
                     aa.notifyDataSetChanged();
-
+                    // update total
+                    TextView total = (TextView) findViewById(R.id.exTotal);
+                    total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
                     mode.finish(); // Action picked, so close the CAB
                     return true;
                 default:
@@ -113,15 +115,13 @@ public class ViewExpenses extends ListActivity {
      */
     private void populateExpenses() {
         // retrieve all expenses for the user and category and this month and year
-        List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH) + 1,
-                date.get(Calendar.YEAR));
+        List<Expense> exs = exSource.getAllExpenses(curUser, curCat);
 
         TextView title = (TextView) findViewById(R.id.exCat);
         title.setText(curCat.getCategory());
 
         TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText(totalCost);
-        total.setText("$1,000,000");
+        total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
@@ -164,6 +164,7 @@ public class ViewExpenses extends ListActivity {
         enterCost.setInputType(InputType.TYPE_CLASS_NUMBER); // to accept dollar amount
         enterCost.setKeyListener(DigitsKeyListener.getInstance("0123456789.")); // accept digits
         enterDesc.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES); // description text
+        enterDesc.setFilters(new InputFilter[]{new InputFilter.LengthFilter(20)});
         ll.addView(enterCost);
         ll.addView(enterDesc);
         builder.setView(ll);
@@ -219,6 +220,9 @@ public class ViewExpenses extends ListActivity {
                         adapter.add(ex);
                         adapter.notifyDataSetChanged();
                         dia.dismiss();
+                        // update total
+                        TextView total = (TextView) findViewById(R.id.exTotal);
+                        total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
                     } catch (NumberFormatException ne) {
                         enterCost.setError("Please enter a valid dollar amount.");
                     }
@@ -233,16 +237,10 @@ public class ViewExpenses extends ListActivity {
         setContentView(R.layout.activity_view_expenses);
 
         // get intent
-        String curUserName = getIntent().getStringExtra(ViewUsers.CURRENT_USER);
-        String curCatName = getIntent().getStringExtra(ViewCategories.CURRENT_CATEGORY);
-        curUser = new User();
-        curCat = new Category();
-        curUser.setName(curUserName);
-        curCat.setCategory(curCatName);
+        curUser = (User) getIntent().getSerializableExtra(IntentTags.CURRENT_USER);
+        curCat = (Category) getIntent().getSerializableExtra(IntentTags.CURRENT_CATEGORY);
+        date = (Calendar) getIntent().getSerializableExtra(IntentTags.CURRENT_DATE);
         // set totalCost = ; here
-
-        // initialize calendar
-        date = Calendar.getInstance();
 
         // open data source
         exSource = new ExpenseDao(this);

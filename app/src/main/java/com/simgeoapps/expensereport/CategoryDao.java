@@ -38,21 +38,22 @@ public class CategoryDao {
         return res.getCount() > 0;
     }
 
-    public float getTotalCost(String cat, User us) {
-        String[] cols = { ExpenseData.COST_COLUMN };
-        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.CATEGORY_NAME +
-                " = '" + cat + "' AND " + ExpenseData.USER_NAME + " = '" + us.getName() + "'", null,
-                null, null, null);
-
-        float totCost = 0.0f;
-        res.moveToFirst();
-        while (!res.isAfterLast()) {
-            totCost += res.getFloat(0);
-            res.moveToNext();
-        }
-
-        return totCost;
-    }
+    // don't need this here
+//    public float getTotalCost(String cat, User us) {
+//        String[] cols = { ExpenseData.COST_COLUMN };
+//        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.CATEGORY_NAME +
+//                " = '" + cat + "' AND " + ExpenseData.USER_NAME + " = '" + us.getName() + "'", null,
+//                null, null, null);
+//
+//        float totCost = 0.0f;
+//        res.moveToFirst();
+//        while (!res.isAfterLast()) {
+//            totCost += res.getFloat(0);
+//            res.moveToNext();
+//        }
+//
+//        return totCost;
+//    }
 
     public Category newCategory(String cat, User us) {
         ContentValues cv = new ContentValues();

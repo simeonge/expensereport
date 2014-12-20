@@ -26,7 +26,15 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textSize="20sp"
         android:id="@+id/exTotal" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_marginBottom="10dp"
+        android:background="#ff000000" />
 
     <ListView
         android:layout_width="match_parent"

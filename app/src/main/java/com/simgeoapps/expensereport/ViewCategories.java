@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -17,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -31,8 +33,11 @@ public class ViewCategories extends ListActivity {
     /** Currently active user, as specified by intent received from ViewUsers class. */
     private User curUser;
 
-    /** Intent extra tag for selected category. */
-    public static final String CURRENT_CATEGORY = "com.simgeoapps.expensereport.CURRENTCATEGORY";
+    /** Variable to hold today's date. */
+    private static Calendar date;
+
+    public static final String[] MONTHS = { "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"};
 
     /**
      * Method to populate the list view with all categories for specified user.
@@ -41,9 +46,13 @@ public class ViewCategories extends ListActivity {
         // get all categories for specified user
         List<Category> values = catSource.getCategories(curUser);
 
+//        TextView tv = (TextView) findViewById(R.id.catMon);
+//        tv.setText(MONTHS[date.get(Calendar.MONTH)]);
+
         // use adapter to show the elements in a ListView
-        final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, R.layout.row_layout_category,
-                R.id.catLabel, values);
+        // change to custom layout if necessary
+        final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
+                android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
 
         // set item onclick listener to each item in list
@@ -55,8 +64,9 @@ public class ViewCategories extends ListActivity {
 
                 // pass user + category to ViewExpenses activity using the intent
                 Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
-                intent.putExtra(ViewUsers.CURRENT_USER, curUser.getName());
-                intent.putExtra(CURRENT_CATEGORY, cat.getCategory());
+                intent.putExtra(IntentTags.CURRENT_USER, curUser);
+                intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
+                intent.putExtra(IntentTags.CURRENT_DATE, date);
                 startActivity(intent);
             }
         });
@@ -74,6 +84,7 @@ public class ViewCategories extends ListActivity {
         // construct input field
         final EditText enterCat = new EditText(this);
         enterCat.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES); // capitalized phrase
+        enterCat.setFilters(new InputFilter[]{new InputFilter.LengthFilter(20)});
         builder.setView(enterCat);
 
         // add ok and cancel buttons
@@ -134,10 +145,8 @@ public class ViewCategories extends ListActivity {
         setContentView(R.layout.activity_view_categories);
 
         // retrieve selected user's user ID from intent
-        String curUserName = getIntent().getStringExtra(ViewUsers.CURRENT_USER);
-        curUser = new User();
-        curUser.setName(curUserName);
-        // what about id? we don't have to set it?
+        curUser = (User) getIntent().getSerializableExtra(IntentTags.CURRENT_USER);
+        date = (Calendar) getIntent().getSerializableExtra(IntentTags.CURRENT_DATE);
 
         // open data source
         catSource = new CategoryDao(this);

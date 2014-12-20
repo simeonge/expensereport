@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -17,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -28,9 +30,6 @@ public class ViewUsers extends ListActivity {
     /** User data source. */
     private UserDao uSource;
 
-    /** Intent extra tag for selected user. */
-    public static final String CURRENT_USER = "com.simgeoapps.expensereport.CURRENTUSER";
-
     /**
      * Method to populate the list view all users.
      */
@@ -39,7 +38,7 @@ public class ViewUsers extends ListActivity {
         List<User> values = uSource.getAllUsers();
 
         // use the SimpleCursorAdapter to show the elements in a ListView
-        ArrayAdapter<User> adapter = new ArrayAdapter<User>(this,
+        final ArrayAdapter<User> adapter = new ArrayAdapter<User>(this,
                 android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
 
@@ -48,13 +47,12 @@ public class ViewUsers extends ListActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 // retrieve selected user
-                String name = ((TextView) view).getText().toString();
-                User us = new User();
-                us.setName(name);
+                User us = adapter.getItem(i);
 
                 // pass user to ViewCategories activity using the intent
                 Intent intent = new Intent(ViewUsers.this, ViewCategories.class);
-                intent.putExtra(CURRENT_USER, us.getName());
+                intent.putExtra(IntentTags.CURRENT_USER, us);
+                intent.putExtra(IntentTags.CURRENT_DATE, Calendar.getInstance());
                 startActivity(intent);
             }
         });
@@ -72,6 +70,7 @@ public class ViewUsers extends ListActivity {
         // construct input field
         final EditText enterName = new EditText(this);
         enterName.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS); // capitalized words
+        enterName.setFilters(new InputFilter[]{new InputFilter.LengthFilter(14)});
         builder.setView(enterName);
 
         // add ok and cancel buttons
@@ -130,6 +129,9 @@ public class ViewUsers extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_users);
+
+        // retrieve selected user's user ID from intent
+        // getIntent().getSerializableExtra("Date");
 
         // open data source
         uSource = new UserDao(this);

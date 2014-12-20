@@ -1,10 +1,12 @@
 package com.simgeoapps.expensereport;
 
+import java.io.Serializable;
+
 /**
  * User model.
  * Created by Simeon on 11/4/2014.
  */
-public class User {
+public class User implements Serializable{
 
     private int id;
     private String name;

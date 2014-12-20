@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,13 +77,57 @@ public class ExpenseDao {
                 null);
     }
 
-    public List<Expense> getExpenses(User us, Category cat, int mon, int yea) {
+    public String getTotalCost(String cat, User us) {
+        String[] cols = { ExpenseData.COST_COLUMN };
+        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.CATEGORY_NAME +
+                        " = '" + cat + "' AND " + ExpenseData.USER_NAME + " = '" + us.getName() + "'", null,
+                null, null, null);
+
+        float totCost = 0.0f;
+        res.moveToFirst();
+        while (!res.isAfterLast()) {
+            totCost += res.getFloat(0);
+            res.moveToNext();
+        }
+
+        // format total as currency and return
+        return NumberFormat.getCurrencyInstance().format(totCost);
+    }
+
+    public List<Expense> getMonthExpenses(User us, Category cat, int mon, int yea) {
         List<Expense> ans = new ArrayList<Expense>();
 
         Cursor res = database.query(ExpenseData.EXPENSES_TABLE, colsToReturn, ExpenseData.USER_NAME +
                 " = '" + us.getName() + "' AND " + ExpenseData.CATEGORY_NAME + " = '" + cat.getCategory() +
                 "' AND " + ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(mon) + "' AND " +
                 ExpenseData.YEAR_COLUMN + " = '" + Integer.toString(yea) + "'", null, null, null, null);
+
+        res.moveToFirst();
+        while (!res.isAfterLast()) {
+            Expense ex = new Expense();
+            ex.setId(res.getInt(0)); // expense id
+            ex.setUserName(res.getString(1)); // user name
+            ex.setCategoryId(res.getString(2)); // category name
+            ex.setCost(res.getFloat(3)); // cost
+            ex.setDescription(res.getString(4)); // description
+            ex.setDay(res.getString(5)); // day
+            ex.setMonth(res.getString(6)); // month
+            ex.setYear(res.getString(7)); // year
+
+            ans.add(ex);
+            res.moveToNext();
+        }
+
+        res.close();
+        return ans;
+    }
+
+    public List<Expense> getAllExpenses(User us, Category cat) {
+        List<Expense> ans = new ArrayList<Expense>();
+
+        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, colsToReturn, ExpenseData.USER_NAME +
+                " = '" + us.getName() + "' AND " + ExpenseData.CATEGORY_NAME + " = '" +
+                cat.getCategory() + "'", null, null, null, null);
 
         res.moveToFirst();
         while (!res.isAfterLast()) {
