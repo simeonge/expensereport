@@ -84,7 +84,7 @@ public class Expense {
 
     @Override
     public String toString() {
-        return NumberFormat.getCurrencyInstance().format(cost) + ":  " + description;
+        return NumberFormat.getCurrencyInstance().format(cost) + " " + description;
     }
 
 }

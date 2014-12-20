@@ -28,14 +28,22 @@ import java.util.regex.Pattern;
 
 public class ViewExpenses extends ListActivity {
 
+    /** Expenses data source. */
     private ExpenseDao exSource;
 
+    /** Currently active user, as specified by intent received from ViewCategories class. */
     private User curUser;
 
+    /** Currently selected category, as specified by intent received from ViewCategories class. */
     private Category curCat;
 
+    /** Sum total of the current category, as given by intent received from ViewCategories class. */
+    private String totalCost;
+
+    /** Variable to hold today's date. */
     private static Calendar date;
 
+    /** Action mode for the context menu. */
     private ActionMode aMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
@@ -107,6 +115,13 @@ public class ViewExpenses extends ListActivity {
         // retrieve all expenses for the user and category and this month and year
         List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH) + 1,
                 date.get(Calendar.YEAR));
+
+        TextView title = (TextView) findViewById(R.id.exCat);
+        title.setText(curCat.getCategory());
+
+        TextView total = (TextView) findViewById(R.id.exTotal);
+        total.setText(totalCost);
+        total.setText("$1,000,000");
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
@@ -224,6 +239,7 @@ public class ViewExpenses extends ListActivity {
         curCat = new Category();
         curUser.setName(curUserName);
         curCat.setCategory(curCatName);
+        // set totalCost = ; here
 
         // initialize calendar
         date = Calendar.getInstance();

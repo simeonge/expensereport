@@ -42,8 +42,8 @@ public class ViewCategories extends ListActivity {
         List<Category> values = catSource.getCategories(curUser);
 
         // use adapter to show the elements in a ListView
-        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
-                android.R.layout.simple_list_item_1, values);
+        final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, R.layout.row_layout_category,
+                R.id.catLabel, values);
         setListAdapter(adapter);
 
         // set item onclick listener to each item in list
@@ -51,9 +51,7 @@ public class ViewCategories extends ListActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 // retrieve selected category
-                String name = ((TextView) view).getText().toString();
-                Category cat = new Category();
-                cat.setCategory(name);
+                Category cat = adapter.getItem(i);
 
                 // pass user + category to ViewExpenses activity using the intent
                 Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);

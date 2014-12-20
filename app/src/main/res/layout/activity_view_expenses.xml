@@ -14,13 +14,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:textSize="40sp" />
+        android:textSize="40sp"
+        android:id="@+id/exCat" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dip"
         android:layout_marginBottom="10dp"
         android:background="#ff000000" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/exTotal" />
 
     <ListView
         android:layout_width="match_parent"
