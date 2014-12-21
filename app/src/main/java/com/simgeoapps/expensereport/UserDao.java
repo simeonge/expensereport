@@ -78,7 +78,7 @@ public class UserDao {
         database.update(ExpenseData.USERS_TABLE, cv, ExpenseData.USER_ID + " = " + name.getId(), null);
     }
 
-    public void deleteUser(User name) {
+    public void deleteUser(User user) {
         // TODO implement
         // there is a dependency that user must not have any categories associated with it
 //        int id = name.getId();

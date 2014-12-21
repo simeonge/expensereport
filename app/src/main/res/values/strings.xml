@@ -2,10 +2,10 @@
 <resources>
 
     <!-- app level -->
-    <string name="app_name">ExpenseReport</string>
+    <string name="app_name">Coin</string>
 
     <!-- activity level -->
-    <string name="title_activity_launch_test">CoinTest</string>
+    <string name="title_activity_launch_test">Coin</string>
     <string name="title_activity_view_expenses">Expenses</string>
     <string name="title_activity_enter_expenses">Enter Expenses</string>
     <string name="title_activity_view_categories">Categories</string>

@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class Category implements Serializable{
     // fields corresponding to the category table columns
     private int id;
-    private String usermame;
+    private int userId;
     private String category;
 
     // fields getters and setters
@@ -21,12 +21,12 @@ public class Category implements Serializable{
         this.category = category;
     }
 
-    public String getUserName() {
-        return usermame;
+    public int getUserID() {
+        return userId;
     }
 
-    public void setUserName(String username) {
-        this.usermame = username;
+    public void setUserId(int userID) {
+        this.userId = userID;
     }
 
     public int getId() {

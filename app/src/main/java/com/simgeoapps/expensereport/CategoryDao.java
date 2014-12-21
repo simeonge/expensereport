@@ -17,7 +17,7 @@ public class CategoryDao {
     // Database fields
     private SQLiteDatabase database;
     private ExpenseData dbHelper;
-    private String[] colsToReturn = { ExpenseData.CATEGORY_ID, ExpenseData.USER_NAME,
+    private String[] colsToReturn = { ExpenseData.CATEGORY_ID, ExpenseData.USER_ID,
             ExpenseData.CATEGORY_NAME };
 
     public CategoryDao(Context context) {
@@ -34,7 +34,7 @@ public class CategoryDao {
 
     public boolean exists(String category, User us) {
         Cursor res = database.query(ExpenseData.CATEGORIES_TABLE, colsToReturn, ExpenseData.CATEGORY_NAME +
-                " = '" + category + "' AND " + ExpenseData.USER_NAME + " = '" + us.getName() + "'", null, null, null, null);
+                " = '" + category + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null, null, null, null);
         return res.getCount() > 0;
     }
 
@@ -58,7 +58,7 @@ public class CategoryDao {
     public Category newCategory(String cat, User us) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat);
-        cv.put(ExpenseData.USER_NAME, us.getName());
+        cv.put(ExpenseData.USER_ID, us.getId());
         long insertId = database.insert(ExpenseData.CATEGORIES_TABLE, null, cv);
 
         // query db and get inserted category
@@ -68,7 +68,7 @@ public class CategoryDao {
         cur.moveToFirst();
         Category ans = new Category();
         ans.setId(cur.getInt(0));
-        ans.setUserName(cur.getString(1));
+        ans.setUserId(cur.getInt(1));
         ans.setCategory(cur.getString(2));
         cur.close();
 
@@ -79,7 +79,7 @@ public class CategoryDao {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat.getCategory());
         database.update(ExpenseData.CATEGORIES_TABLE, cv, ExpenseData.CATEGORY_ID + " = " +
-                cat.getId() + " AND " + ExpenseData.USER_NAME + " = " + us.getName(), null);
+                cat.getId() + " AND " + ExpenseData.USER_ID + " = " + us.getId(), null);
     }
 
     public void deleteCategory(Category cat, User us) {
@@ -93,13 +93,13 @@ public class CategoryDao {
 
         // query db and get all categories for user us
         Cursor res = database.query(ExpenseData.CATEGORIES_TABLE, colsToReturn,
-                ExpenseData.USER_NAME + " = '" + us.getName() + "'", null, null, null, null);
+                ExpenseData.USER_ID + " = '" + us.getId() + "'", null, null, null, null);
 
         res.moveToFirst();
         while (!res.isAfterLast()) {
             Category cat = new Category();
             cat.setId(res.getInt(0));
-            cat.setUserName(res.getString(1));
+            cat.setUserId(res.getInt(1));
             cat.setCategory(res.getString(2));
             ans.add(cat);
             res.moveToNext();

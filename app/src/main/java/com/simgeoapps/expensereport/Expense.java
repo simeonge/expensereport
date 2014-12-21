@@ -9,8 +9,8 @@ import java.text.NumberFormat;
 public class Expense {
     // fields corresponding to the expense table columns
     private int id;
-    private String username;
-    private String categoryName;
+    private int userId;
+    private int categoryId;
     private float cost;
     private String description;
     private String day;
@@ -26,20 +26,20 @@ public class Expense {
         this.id = id;
     }
 
-    public String getUserName() {
-        return username;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUserName(String username) {
-        this.username = username;
+    public void setUserId(int userID) {
+        this.userId = userID;
     }
 
-    public String getCategory() {
-        return categoryName;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategoryId(String categoryName) {
-        this.categoryName = categoryName;
+    public void setCategoryId(int categoryID) {
+        this.categoryId = categoryID;
     }
 
     public float getCost() {

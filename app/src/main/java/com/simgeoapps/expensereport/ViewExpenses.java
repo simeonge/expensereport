@@ -81,7 +81,7 @@ public class ViewExpenses extends ListActivity {
                     aa.notifyDataSetChanged();
                     // update total
                     TextView total = (TextView) findViewById(R.id.exTotal);
-                    total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
+                    total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
                     mode.finish(); // Action picked, so close the CAB
                     return true;
                 default:
@@ -115,13 +115,13 @@ public class ViewExpenses extends ListActivity {
      */
     private void populateExpenses() {
         // retrieve all expenses for the user and category and this month and year
-        List<Expense> exs = exSource.getAllExpenses(curUser, curCat);
+        List<Expense> exs = exSource.getExpenses(curUser, curCat);
 
         TextView title = (TextView) findViewById(R.id.exCat);
         title.setText(curCat.getCategory());
 
         TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
+        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
@@ -222,7 +222,7 @@ public class ViewExpenses extends ListActivity {
                         dia.dismiss();
                         // update total
                         TextView total = (TextView) findViewById(R.id.exTotal);
-                        total.setText("Total: " + exSource.getTotalCost(curCat.getCategory(), curUser));
+                        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
                     } catch (NumberFormatException ne) {
                         enterCost.setError("Please enter a valid dollar amount.");
                     }

@@ -41,12 +41,12 @@ public class ExpenseData extends SQLiteOpenHelper {
             " integer primary key autoincrement, " + USER_NAME + " text not null unique);";
 
     private static final String CREATE_CATEGORIES_TABLE = "CREATE TABLE " + CATEGORIES_TABLE +
-            " (" + CATEGORY_ID + " integer primary key autoincrement, " + USER_NAME +
+            " (" + CATEGORY_ID + " integer primary key autoincrement, " + USER_ID+
             " integer not null, " + CATEGORY_NAME + " text not null);";
 
     private static final String CREATE_EXPENSES_TABLE = "CREATE TABLE " + EXPENSES_TABLE +
-            " (" + EXPENSE_ID + " integer primary key autoincrement, " + USER_NAME +
-            " integer not null, " + CATEGORY_NAME + " integer not null, " + COST_COLUMN +
+            " (" + EXPENSE_ID + " integer primary key autoincrement, " + USER_ID +
+            " integer not null, " + CATEGORY_ID + " integer not null, " + COST_COLUMN +
             " real not null, " + DESCRIPTION_COLUMN + " text, " + DAY_COLUMN + " text not null, " +
             MONTH_COLUMN + " text not null, " + YEAR_COLUMN + " text not null);";
 

@@ -9,8 +9,9 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.simgeoapps.expensereport.LaunchTest"
-            android:label="@string/title_activity_launch_test" >
+            android:name="com.simgeoapps.expensereport.Splash"
+            android:label="@string/title_activity_launch_test"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
             <intent-filter> <!-- put launcher title here, else inherit from parent activity -->
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
