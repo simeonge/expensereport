@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +18,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.Calendar;
@@ -29,6 +32,70 @@ public class ViewUsers extends ListActivity {
 
     /** User data source. */
     private UserDao uSource;
+
+    /* TODO Currently active user. */
+    public User curUser;
+
+    /** Action mode for the context menu. */
+    private ActionMode aMode;
+
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.context_users, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_edit:
+                    // edit a user's name
+                    editUser();
+                    mode.finish(); // close the CAB
+                    return true;
+                case R.id.action_del:
+                    // delete selected user
+                    deleteUser();
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // Called when the user exits the action mode
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            // unselect item that was selected (if it wasn't deleted)
+            final ListView lv = getListView();
+            lv.clearChoices();
+            lv.setItemChecked(lv.getCheckedItemPosition(), false);
+            // ((ArrayAdapter<Expense>) getListAdapter()).notifyDataSetChanged();
+            // prevent item selection when context menu is inactive
+            // doesn't work if called in same thread and item remains highlighted;
+            // calling from new thread as a work around
+            lv.post(new Runnable() {
+                @Override
+                public void run() {
+                    lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
+                }
+            });
+            aMode = null;
+        }
+    };
 
     /**
      * Method to populate the list view all users.
@@ -56,12 +123,32 @@ public class ViewUsers extends ListActivity {
                 startActivity(intent);
             }
         });
+
+        // set long click listener, to display CAB
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            // Called when the user long-clicks on an item
+            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                if (aMode != null) {
+                    return false;
+                }
+                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                // mark item at position i as selected
+                getListView().setItemChecked(i, true);
+                // Start the CAB using the ActionMode.Callback defined above
+                aMode = ViewUsers.this.startActionMode(mActionModeCallback);
+                return true;
+            }
+        });
+
+        if (values.size() == 0) {
+            addUser();
+        }
     }
 
     /**
      * Method to add a new user, called when the Add button the action bar is clicked.
      */
-    public void addUser() {
+    private void addUser() {
         // build dialog to ask for name of user
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create user");
@@ -123,6 +210,30 @@ public class ViewUsers extends ListActivity {
                 }
             }
         });
+    }
+
+    /**
+     * Method to edit a user's name, called when the Edit button in the context menu is clicked.
+     */
+    private void editUser() {
+
+    }
+
+    /**
+     * Method to delete a user, called when the Delete button in the context menu is clicked.
+     */
+    private void deleteUser() {
+        // get list view and list adapter
+        ListView lv = getListView();
+        ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
+        int pos = lv.getCheckedItemPosition(); // get pos of selected item
+        User userToDel = aa.getItem(pos); // get item in adapter at position pos
+        // show dialog confirming deletion
+
+        // delete all categories and expenses for this user
+
+        // update adapter, notify change
+
     }
 
     @Override

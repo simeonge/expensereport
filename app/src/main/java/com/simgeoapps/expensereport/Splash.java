@@ -33,7 +33,7 @@ public class Splash extends Activity {
             startActivity(it); // start category activity
         } else {
             Intent intent = new Intent(this, ViewUsers.class);
-            startActivity(intent); // start category activity
+            startActivity(intent); // start user activity
         }
 
         uSource.close();

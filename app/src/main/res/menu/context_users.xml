@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.simgeoapps.expensereport.ViewExpenses">
+    tools:context="com.simgeoapps.expensereport.ViewUsers">
+    <item android:id="@+id/action_edit"
+        android:title="@string/edi"
+        android:orderInCategory="1"
+        android:showAsAction="ifRoom" />
     <item android:id="@+id/action_del"
         android:title="@string/del"
         android:orderInCategory="2"

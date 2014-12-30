@@ -32,6 +32,8 @@
 
     <!-- action bar level -->
     <string name="add">Add</string>
-    <string name="del">Del</string>
+    <string name="edi">Edit</string>
+    <string name="del">Delete</string>
+    <string name="swi">Switch user</string>
 
 </resources>

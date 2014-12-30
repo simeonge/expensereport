@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +18,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.Calendar;
@@ -38,6 +41,67 @@ public class ViewCategories extends ListActivity {
 
     public static final String[] MONTHS = { "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"};
+
+    /** Action mode for the context menu. */
+    private ActionMode aMode;
+
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.context_categories, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_edit:
+                    // edit a category name
+                    editCategory();
+                    mode.finish(); // close the CAB
+                    return true;
+                case R.id.action_del:
+                    // delete selected category
+                    deleteCategory();
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // Called when the user exits the action mode
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            // unselect item that was selected (if it wasn't deleted)
+            final ListView lv = getListView();
+            lv.clearChoices();
+            lv.setItemChecked(lv.getCheckedItemPosition(), false);
+            // ((ArrayAdapter<Expense>) getListAdapter()).notifyDataSetChanged();
+            // prevent item selection when context menu is inactive
+            // doesn't work if called in same thread and item remains highlighted;
+            // calling from new thread as a work around
+            lv.post(new Runnable() {
+                @Override
+                public void run() {
+                    lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
+                }
+            });
+            aMode = null;
+        }
+    };
 
     /**
      * Method to populate the list view with all categories for specified user.
@@ -68,6 +132,22 @@ public class ViewCategories extends ListActivity {
                 intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
                 intent.putExtra(IntentTags.CURRENT_DATE, date);
                 startActivity(intent);
+            }
+        });
+
+        // set long click listener, to display CAB
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            // Called when the user long-clicks on an item
+            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                if (aMode != null) {
+                    return false;
+                }
+                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                // mark item at position i as selected
+                getListView().setItemChecked(i, true);
+                // Start the CAB using the ActionMode.Callback defined above
+                aMode = ViewCategories.this.startActionMode(mActionModeCallback);
+                return true;
             }
         });
     }
@@ -139,6 +219,20 @@ public class ViewCategories extends ListActivity {
         });
     }
 
+    /**
+     * Method to edit a category title, called when the Edit button in the context menu is clicked.
+     */
+    private void editCategory() {
+
+    }
+
+    /**
+     * Method to delete a category, called when the Delete button in the context menu is clicked.
+     */
+    private void deleteCategory() {
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,7 +276,9 @@ public class ViewCategories extends ListActivity {
         if (id == R.id.action_new) {
             addCategory();
             return true;
-        } else if (id == R.id.action_settings) {
+        } else if (id == R.id.switch_user) {
+            Intent intent = new Intent(this, ViewUsers.class);
+            startActivity(intent); // start user activity
             return true;
         }
         return super.onOptionsItemSelected(item);

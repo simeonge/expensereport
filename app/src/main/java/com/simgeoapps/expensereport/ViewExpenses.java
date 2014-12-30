@@ -3,6 +3,7 @@ package com.simgeoapps.expensereport;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -71,17 +72,7 @@ public class ViewExpenses extends ListActivity {
             switch (item.getItemId()) {
                 case R.id.action_del:
                     // delete selected expense
-                    // get list view and list adapter
-                    ListView lv = getListView();
-                    ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
-                    int pos = lv.getCheckedItemPosition(); // get pos of selected item
-                    Expense del = aa.getItem(pos); // get item in adapter at position pos
-                    exSource.deleteExpense(del); // delete selected item from db
-                    aa.remove(del); // remove selected item from adapter
-                    aa.notifyDataSetChanged();
-                    // update total
-                    TextView total = (TextView) findViewById(R.id.exTotal);
-                    total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
+                    deleteExpense();
                     mode.finish(); // Action picked, so close the CAB
                     return true;
                 default:
@@ -231,6 +222,23 @@ public class ViewExpenses extends ListActivity {
         });
     }
 
+    /**
+     * Method to delete selected expense. Called when Delete button is click in context menu.
+     */
+    public void deleteExpense() {
+        // get list view and list adapter
+        ListView lv = getListView();
+        ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+        int pos = lv.getCheckedItemPosition(); // get pos of selected item
+        Expense del = aa.getItem(pos); // get item in adapter at position pos
+        exSource.deleteExpense(del); // delete selected item from db
+        aa.remove(del); // remove selected item from adapter
+        aa.notifyDataSetChanged();
+        // update total
+        TextView total = (TextView) findViewById(R.id.exTotal);
+        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -276,7 +284,9 @@ public class ViewExpenses extends ListActivity {
         if (id == R.id.action_new) {
             addExpense();
             return true;
-        } else if (id == R.id.action_settings) {
+        } else if (id == R.id.switch_user) {
+            Intent intent = new Intent(this, ViewUsers.class);
+            startActivity(intent); // start user activity
             return true;
         }
         return super.onOptionsItemSelected(item);
