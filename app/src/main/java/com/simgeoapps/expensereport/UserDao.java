@@ -75,14 +75,12 @@ public class UserDao {
     public void editUser(User name) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_NAME, name.getName());
-        database.update(ExpenseData.USERS_TABLE, cv, ExpenseData.USER_ID + " = " + name.getId(), null);
+        database.update(ExpenseData.USERS_TABLE, cv, ExpenseData.USER_ID + " = '" + name.getId() + "'", null);
     }
 
     public void deleteUser(User user) {
-        // TODO implement
-        // there is a dependency that user must not have any categories associated with it
-//        int id = name.getId();
-//        database.delete(ExpenseData.USERS_TABLE, ExpenseData.USER_ID + " = " + id, null);
+        // will delete user only. categories and expenses will remain but cannot be accessed
+        database.delete(ExpenseData.USERS_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
     }
 
     public List<User> getAllUsers() {

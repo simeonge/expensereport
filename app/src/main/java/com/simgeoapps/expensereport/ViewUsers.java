@@ -216,24 +216,107 @@ public class ViewUsers extends ListActivity {
      * Method to edit a user's name, called when the Edit button in the context menu is clicked.
      */
     private void editUser() {
+        // retrieve adapter and retrieve selected user
+        ListView lv = getListView();
+        final ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
+        final User userToEdi = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
+        // show dialog to enter new name
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit user");
+        builder.setMessage("Please enter a new name.");
+
+        // construct input field
+        final EditText enterName = new EditText(this);
+        enterName.setText(userToEdi.getName()); // prepopulate with user's current name
+        enterName.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS); // capitalized words
+        enterName.setFilters(new InputFilter[]{new InputFilter.LengthFilter(14)});
+        builder.setView(enterName);
+
+        // add ok and cancel buttons
+        builder.setPositiveButton(R.string.ok, null);
+        builder.setNegativeButton(R.string.cancel, null);
+
+        // create dialog
+        final AlertDialog dia = builder.create(); // does not show it yet
+
+        // set listener to input field to click OK when done
+        enterName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    // click dialog's OK when user presses Done on keyboard
+                    dia.getButton(Dialog.BUTTON_POSITIVE).performClick();
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+
+        // set input mode to let keyboard appear when dialog is shown
+        dia.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        dia.show(); // show dialog
+
+        // override onclick for OK button; must be done after show()ing to retrieve OK button
+        dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // retrieve name entered
+                String username = enterName.getText().toString().trim();
+
+                // perform checks and add only if pass
+                if (username.equals("")) { // must not be empty
+                    enterName.setError("Please enter a name.");
+                } else if (uSource.exists(username)) { // must not exist
+                    enterName.setError("This user already exists.");
+                } else {
+                    // can be changed
+                    aa.remove(userToEdi); // remove user from adapter
+                    userToEdi.setName(username); // change name in object
+                    uSource.editUser(userToEdi); // change in db
+                    aa.add(userToEdi); // add user back to adapter
+                    aa.notifyDataSetChanged();
+                    dia.dismiss();
+                }
+            }
+        });
     }
 
     /**
      * Method to delete a user, called when the Delete button in the context menu is clicked.
      */
     private void deleteUser() {
+        // show dialog confirming deletion
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete user");
+        builder.setMessage("Are you sure? All expenses for this user will be deleted.");
+
+        // add ok and cancel buttons
+        builder.setPositiveButton(R.string.conf, null);
+        builder.setNegativeButton(R.string.cancel, null);
+
+        // create dialog
+        final AlertDialog dia = builder.create(); // does not show it yet
+
+        dia.show(); // show dialog
+
         // get list view and list adapter
         ListView lv = getListView();
-        ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
-        int pos = lv.getCheckedItemPosition(); // get pos of selected item
-        User userToDel = aa.getItem(pos); // get item in adapter at position pos
-        // show dialog confirming deletion
+        final ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
+        final User userToDel = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
-        // delete all categories and expenses for this user
-
-        // update adapter, notify change
-
+        // override onclick for OK button; must be done after show()ing to retrieve OK button
+        dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uSource.deleteUser(userToDel); // delete user from db
+                aa.remove(userToDel); // remove from adapter
+                aa.notifyDataSetChanged(); // update view
+                dia.dismiss(); // close dialog
+            }
+        });
     }
 
     @Override

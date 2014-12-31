@@ -38,7 +38,6 @@ public class CategoryDao {
         return res.getCount() > 0;
     }
 
-    // don't need this here
 //    public float getTotalCost(String cat, User us) {
 //        String[] cols = { ExpenseData.COST_COLUMN };
 //        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.CATEGORY_NAME +
@@ -78,13 +77,14 @@ public class CategoryDao {
     public void editCaterogy(Category cat, User us) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat.getCategory());
-        database.update(ExpenseData.CATEGORIES_TABLE, cv, ExpenseData.CATEGORY_ID + " = " +
-                cat.getId() + " AND " + ExpenseData.USER_ID + " = " + us.getId(), null);
+        database.update(ExpenseData.CATEGORIES_TABLE, cv, ExpenseData.CATEGORY_ID + " = '" +
+                cat.getId() + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null);
     }
 
     public void deleteCategory(Category cat, User us) {
-        // TODO implement
-        // there is a dependency that cat must not have any expenses associated with it
+        // will delete category only. expenses will remain but cannot be accessed
+        database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.USER_ID + " = '" + us.getId()
+                + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "'", null);
     }
 
     public List<Category> getCategories(User us) {

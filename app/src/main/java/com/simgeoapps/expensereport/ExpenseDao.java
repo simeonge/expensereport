@@ -73,8 +73,8 @@ public class ExpenseDao {
 
     public void deleteExpense(Expense exp) {
         // returns number of rows affected
-        database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.EXPENSE_ID + " = " + exp.getId(),
-                null);
+        database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.EXPENSE_ID + " = '" + exp.getId()
+                + "'", null);
     }
 
     public String getTotalCost(User us, Category cat) {

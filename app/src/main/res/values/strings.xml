@@ -29,6 +29,7 @@
     <!-- fragment level -->
     <string name="ok">Add</string>
     <string name="cancel">Cancel</string>
+    <string name="conf">OK</string>
 
     <!-- action bar level -->
     <string name="add">Add</string>
