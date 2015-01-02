@@ -223,14 +223,106 @@ public class ViewCategories extends ListActivity {
      * Method to edit a category title, called when the Edit button in the context menu is clicked.
      */
     private void editCategory() {
+        // retrieve adapter and retrieve selected category
+        ListView lv = getListView();
+        final ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
+        final Category catToEdi = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
+        // show dialog to enter new name for the category
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit category");
+        builder.setMessage("Please enter a new category name.");
+
+        // construct input field
+        final EditText enterName = new EditText(this);
+        enterName.setText(catToEdi.getCategory()); // prepopulate with current category name
+        enterName.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES); // capitalized phrase
+        enterName.setFilters(new InputFilter[]{new InputFilter.LengthFilter(20)});
+        builder.setView(enterName);
+
+        // add ok and cancel buttons
+        builder.setPositiveButton(R.string.conf, null);
+        builder.setNegativeButton(R.string.cancel, null);
+
+        // create dialog
+        final AlertDialog dia = builder.create(); // does not show it yet
+
+        // set listener to input field to click OK when done
+        enterName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    // click dialog's OK when user presses Done on keyboard
+                    dia.getButton(Dialog.BUTTON_POSITIVE).performClick();
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+
+        // set input mode to let keyboard appear when dialog is shown
+        dia.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        dia.show(); // show dialog
+
+        // override onclick for OK button; must be done after show()ing to retrieve OK button
+        dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // retrieve name entered
+                String catName = enterName.getText().toString().trim();
+
+                // perform checks and add only if pass
+                if (catName.equals("")) { // must not be empty
+                    enterName.setError("Please enter a name.");
+                } else if (catSource.exists(catName, curUser)) { // must not exist
+                    enterName.setError("This category already exists.");
+                } else {
+                    // can be changed
+                    aa.remove(catToEdi); // remove category from adapter
+                    catToEdi.setCategory(catName); // change name in object
+                    catSource.editCaterogy(catToEdi, curUser); // change in db
+                    aa.add(catToEdi); // add category back to adapter
+                    aa.notifyDataSetChanged();
+                    dia.dismiss();
+                }
+            }
+        });
     }
 
     /**
      * Method to delete a category, called when the Delete button in the context menu is clicked.
      */
     private void deleteCategory() {
+        // show dialog confirming deletion
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete category");
+        builder.setMessage("Are you sure? All expenses for this category will be deleted.");
 
+        // add ok and cancel buttons
+        builder.setPositiveButton(R.string.conf, null);
+        builder.setNegativeButton(R.string.cancel, null);
+
+        // create dialog
+        final AlertDialog dia = builder.create();
+        dia.show(); // show dialog
+
+        // get list view and list adapter
+        ListView lv = getListView();
+        final ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
+        final Category catToDel = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
+
+        // override onclick for OK button; must be done after show()ing to retrieve OK button
+        dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                catSource.deleteCategory(catToDel, curUser); // delete category from db
+                aa.remove(catToDel); // remove from adapter
+                aa.notifyDataSetChanged(); // update view
+                dia.dismiss(); // close dialog
+            }
+        });
     }
 
     @Override

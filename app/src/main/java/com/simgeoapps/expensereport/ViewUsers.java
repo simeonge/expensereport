@@ -234,7 +234,7 @@ public class ViewUsers extends ListActivity {
         builder.setView(enterName);
 
         // add ok and cancel buttons
-        builder.setPositiveButton(R.string.ok, null);
+        builder.setPositiveButton(R.string.conf, null);
         builder.setNegativeButton(R.string.cancel, null);
 
         // create dialog
@@ -362,8 +362,6 @@ public class ViewUsers extends ListActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_new) {
             addUser();
-            return true;
-        } else if (id == R.id.action_settings) {
             return true;
         }
 
