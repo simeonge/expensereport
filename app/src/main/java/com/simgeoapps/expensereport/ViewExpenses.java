@@ -33,17 +33,17 @@ public class ViewExpenses extends ListActivity {
     /** Expenses data source. */
     private ExpenseDao exSource;
 
-    /** Currently active user, as specified by intent received from ViewCategories class. */
+    /** Currently active user, as specified in config class. */
     private User curUser;
+
+    /** Variable to hold currently specified date. */
+    private static Calendar date;
 
     /** Currently selected category, as specified by intent received from ViewCategories class. */
     private Category curCat;
 
     /** Sum total of the current category, as given by intent received from ViewCategories class. */
     private String totalCost;
-
-    /** Variable to hold today's date. */
-    private static Calendar date;
 
     /** Action mode for the context menu. */
     private ActionMode aMode;
@@ -108,9 +108,6 @@ public class ViewExpenses extends ListActivity {
         // retrieve all expenses for the user and category and this month and year
         List<Expense> exs = exSource.getExpenses(curUser, curCat);
 
-        TextView title = (TextView) findViewById(R.id.exCat);
-        title.setText(curCat.getCategory());
-
         TextView total = (TextView) findViewById(R.id.exTotal);
         total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
 
@@ -119,16 +116,16 @@ public class ViewExpenses extends ListActivity {
                 android.R.layout.simple_list_item_activated_1, exs);
         setListAdapter(aa);
 
-        // getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        final ListView lv = getListView();
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             // Called when the user long-clicks on an item
             public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
                 if (aMode != null) {
                     return false;
                 }
-                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
                 // mark item at position i as selected
-                getListView().setItemChecked(i, true);
+                lv.setItemChecked(i, true);
                 // Start the CAB using the ActionMode.Callback defined above
                 aMode = ViewExpenses.this.startActionMode(mActionModeCallback);
                 return true;
@@ -139,7 +136,7 @@ public class ViewExpenses extends ListActivity {
     /**
      * Method to record a new expense. Called when Add button in action bar is clicked.
      */
-    public void addExpense() {
+    private void addExpense() {
         // build dialog to ask for expense details
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Record expense");
@@ -225,7 +222,7 @@ public class ViewExpenses extends ListActivity {
     /**
      * Method to delete selected expense. Called when Delete button is click in context menu.
      */
-    public void deleteExpense() {
+    private void deleteExpense() {
         // get list view and list adapter
         ListView lv = getListView();
         ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
@@ -245,10 +242,21 @@ public class ViewExpenses extends ListActivity {
         setContentView(R.layout.activity_view_expenses);
 
         // get intent
-        curUser = (User) getIntent().getSerializableExtra(IntentTags.CURRENT_USER);
+        curUser = GlobalConfig.getCurrentUser();
+        date = GlobalConfig.getDate();
         curCat = (Category) getIntent().getSerializableExtra(IntentTags.CURRENT_CATEGORY);
-        date = (Calendar) getIntent().getSerializableExtra(IntentTags.CURRENT_DATE);
         // set totalCost = ; here
+
+        // set title to category
+        TextView title = (TextView) findViewById(R.id.exCat);
+        title.setText(curCat.getCategory());
+        title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(ViewExpenses.this, ViewCategories.class);
+                startActivity(it);
+            }
+        });
 
         // open data source
         exSource = new ExpenseDao(this);

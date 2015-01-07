@@ -21,7 +21,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -32,9 +31,6 @@ public class ViewUsers extends ListActivity {
 
     /** User data source. */
     private UserDao uSource;
-
-    /* TODO Currently active user. */
-    public User curUser;
 
     /** Action mode for the context menu. */
     private ActionMode aMode;
@@ -106,34 +102,36 @@ public class ViewUsers extends ListActivity {
 
         // use the SimpleCursorAdapter to show the elements in a ListView
         final ArrayAdapter<User> adapter = new ArrayAdapter<User>(this,
-                android.R.layout.simple_list_item_1, values);
+                android.R.layout.simple_list_item_activated_1, values);
         setListAdapter(adapter);
 
-        // set item onclick listener to each item in list
-        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final ListView lv = getListView();
+        // set item onclick listener to each item in list, to launch categories activity
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 // retrieve selected user
                 User us = adapter.getItem(i);
 
-                // pass user to ViewCategories activity using the intent
+                // set selected user in config
+                GlobalConfig.setCurrentUser(us);
+
+                // start ViewCategories activity
                 Intent intent = new Intent(ViewUsers.this, ViewCategories.class);
-                intent.putExtra(IntentTags.CURRENT_USER, us);
-                intent.putExtra(IntentTags.CURRENT_DATE, Calendar.getInstance());
                 startActivity(intent);
             }
         });
 
         // set long click listener, to display CAB
-        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             // Called when the user long-clicks on an item
             public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
                 if (aMode != null) {
                     return false;
                 }
-                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
                 // mark item at position i as selected
-                getListView().setItemChecked(i, true);
+                lv.setItemChecked(i, true);
                 // Start the CAB using the ActionMode.Callback defined above
                 aMode = ViewUsers.this.startActionMode(mActionModeCallback);
                 return true;
@@ -323,9 +321,6 @@ public class ViewUsers extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_users);
-
-        // retrieve selected user's user ID from intent
-        // getIntent().getSerializableExtra("Date");
 
         // open data source
         uSource = new UserDao(this);

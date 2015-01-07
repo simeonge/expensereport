@@ -1,7 +1,9 @@
 package com.simgeoapps.expensereport;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -33,10 +36,10 @@ public class ViewCategories extends ListActivity {
     /** Category data source. */
     private CategoryDao catSource;
 
-    /** Currently active user, as specified by intent received from ViewUsers class. */
+    /** Currently active user, as specified in global config class. */
     private User curUser;
 
-    /** Variable to hold today's date. */
+    /** Variable to hold currently specified date. */
     private static Calendar date;
 
     public static final String[] MONTHS = { "January", "February", "March", "April", "May", "June",
@@ -46,6 +49,12 @@ public class ViewCategories extends ListActivity {
     private ActionMode aMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        /** To temporarily store listener when removed. */
+        private AdapterView.OnItemClickListener lstn;
+
+        /** Title which displays month and year. */
+        private TextView title;
 
         // Called when the action mode is created; startActionMode() was called
         @Override
@@ -60,7 +69,15 @@ public class ViewCategories extends ListActivity {
         // may be called multiple times if the mode is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
+            // disable other listeners temporarily to prevent multiple actions
+            // disable on item click which would start expenses activity
+            ListView lv = getListView();
+            lstn = lv.getOnItemClickListener();
+            lv.setOnItemClickListener(null);
+            // disable title on click which would open date picker
+            title = (TextView) findViewById(R.id.catMon);
+            title.setClickable(false);
+            return true; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item
@@ -100,8 +117,46 @@ public class ViewCategories extends ListActivity {
                 }
             });
             aMode = null;
+
+            // restore listeners
+            getListView().setOnItemClickListener(lstn);
+            title.setClickable(true);
         }
     };
+
+    public static class DateSelector extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the date specified in config as the default date in the picker
+            int year = date.get(Calendar.YEAR);
+            int month = date.get(Calendar.MONTH);
+            int day = date.get(Calendar.DAY_OF_MONTH); // don't need this
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            // specify new date in config
+            Calendar c = Calendar.getInstance();
+            c.set(year, month, day); // set new date
+            GlobalConfig.setDate(c); // change global date
+            date = c; // change var for this activity
+
+            // change view
+//            getActivity().recreate(); can recreate, or finish then start again
+//            Intent intent = getActivity().getIntent();
+//            getActivity().finish();
+//            startActivity(intent);
+            // change title
+            TextView title = (TextView) getActivity().findViewById(R.id.catMon);
+            title.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
+
+            // refresh categories; must show new totals for the new month/year
+
+        }
+    }
 
     /**
      * Method to populate the list view with all categories for specified user.
@@ -110,41 +165,37 @@ public class ViewCategories extends ListActivity {
         // get all categories for specified user
         List<Category> values = catSource.getCategories(curUser);
 
-//        TextView tv = (TextView) findViewById(R.id.catMon);
-//        tv.setText(MONTHS[date.get(Calendar.MONTH)]);
-
         // use adapter to show the elements in a ListView
         // change to custom layout if necessary
         final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
-                android.R.layout.simple_list_item_1, values);
+                android.R.layout.simple_list_item_activated_1, values);
         setListAdapter(adapter);
 
+        final ListView lv = getListView();
         // set item onclick listener to each item in list
-        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 // retrieve selected category
                 Category cat = adapter.getItem(i);
 
-                // pass user + category to ViewExpenses activity using the intent
+                // pass category to ViewExpenses activity and start it
                 Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
-                intent.putExtra(IntentTags.CURRENT_USER, curUser);
                 intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
-                intent.putExtra(IntentTags.CURRENT_DATE, date);
                 startActivity(intent);
             }
         });
 
         // set long click listener, to display CAB
-        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             // Called when the user long-clicks on an item
             public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
                 if (aMode != null) {
                     return false;
                 }
-                getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
                 // mark item at position i as selected
-                getListView().setItemChecked(i, true);
+                lv.setItemChecked(i, true);
                 // Start the CAB using the ActionMode.Callback defined above
                 aMode = ViewCategories.this.startActionMode(mActionModeCallback);
                 return true;
@@ -155,7 +206,7 @@ public class ViewCategories extends ListActivity {
     /**
      * Method to add a new category. Called when Add button in action bar is clicked.
      */
-    public void addCategory() {
+    private void addCategory() {
         // build dialog to ask for category
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Create category");
@@ -330,9 +381,19 @@ public class ViewCategories extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_categories);
 
-        // retrieve selected user's user ID from intent
-        curUser = (User) getIntent().getSerializableExtra(IntentTags.CURRENT_USER);
-        date = (Calendar) getIntent().getSerializableExtra(IntentTags.CURRENT_DATE);
+        // retrieve selected user's user ID from config
+        curUser = GlobalConfig.getCurrentUser();
+        date = GlobalConfig.getDate();
+
+        // set month selector listener
+        final TextView title = (TextView) findViewById(R.id.catMon);
+        title.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
+        title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new DateSelector().show(getFragmentManager(), "configDatePicker");
+            }
+        });
 
         // open data source
         catSource = new CategoryDao(this);

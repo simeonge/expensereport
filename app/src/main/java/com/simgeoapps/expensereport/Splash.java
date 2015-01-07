@@ -15,24 +15,24 @@ import java.util.List;
 public class Splash extends Activity {
 
     /**
-     * Called when the begin button is clicked. Starts the ViewUsers activity.
+     * Called during splash screen. Starts the ViewUsers activity.
      */
     public void begin() {
         // here pass current month and year, and default/only user, and
         UserDao uSource = new UserDao(this);
         uSource.open();
         List<User> lu = uSource.getAllUsers();
-        Calendar date = Calendar.getInstance();
 
-        // if we have only one user, go directly to categories class
+        // if we have only one user, specify it in config, then go directly to categories class
         if (lu.size() == 1) {
             Intent it = new Intent(this, ViewCategories.class);
             User soleUser = lu.get(0);
-            it.putExtra(IntentTags.CURRENT_USER, soleUser);
-            it.putExtra(IntentTags.CURRENT_DATE, date);
+            GlobalConfig.setCurrentUser(soleUser); // set default user if only one
+            GlobalConfig.setDate(Calendar.getInstance()); // use current date by default
             startActivity(it); // start category activity
         } else {
             Intent intent = new Intent(this, ViewUsers.class);
+            GlobalConfig.setDate(Calendar.getInstance()); // use current date by default
             startActivity(intent); // start user activity
         }
 
