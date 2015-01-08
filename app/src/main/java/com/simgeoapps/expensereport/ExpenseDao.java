@@ -77,11 +77,45 @@ public class ExpenseDao {
                 + "'", null);
     }
 
-    public String getTotalCost(User us, Category cat) {
+    /**
+     * Retrieves the sum total of all expenses for the given criteria. This method is used in the
+     * ViewExpenses activity to show the total at the top.
+     * @param us The user whose expenses should be included in the total.
+     * @param cat The category whose expenses should be included in the total.
+     * @param month The expenses for this month should be included in the total.
+     * @param year The expenses for this year should be included in the total.
+     * @return The formatted dollar amount of the sum total of expenses that match the criteria.
+     */
+    public String getTotalCost(User us, Category cat, int month, int year) {
         String[] cols = { ExpenseData.COST_COLUMN };
-        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.CATEGORY_ID +
-                        " = '" + cat.getId() + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null,
-                null, null, null);
+        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.USER_ID + " = '" +
+                us.getId() + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "' AND " +
+                ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(month) + "' AND " +
+                ExpenseData.YEAR_COLUMN + " = '" + Integer.toString(year) + "'", null, null, null, null);
+
+        float totCost = 0.0f;
+        res.moveToFirst();
+        while (!res.isAfterLast()) {
+            totCost += res.getFloat(0);
+            res.moveToNext();
+        }
+
+        // format total as currency
+        return NumberFormat.getCurrencyInstance().format(totCost);
+    }
+
+    /**
+     * Retrieves the sum total of all expenses for the given user and month/year.
+     * @param us The user whose expenses should be included in the total.
+     * @param month The expenses for this month should be included in the total.
+     * @param year The expenses for this year should be included in the total.
+     * @return The formatted dollar amount of the sum total of expenses that match the criteria.
+     */
+    public String getTotalCost(User us, int month, int year) {
+        String[] cols = { ExpenseData.COST_COLUMN };
+        Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.USER_ID + " = '" +
+                us.getId() + "' AND " + ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(month) +
+                "' AND " + ExpenseData.YEAR_COLUMN + " = '" + Integer.toString(year) + "'", null, null, null, null);
 
         float totCost = 0.0f;
         res.moveToFirst();
@@ -94,6 +128,14 @@ public class ExpenseDao {
         return NumberFormat.getCurrencyInstance().format(totCost);
     }
 
+    /**
+     * Retrieves the expenses for the specified user, category, month, and year.
+     * @param us The user for which expenses should be returned.
+     * @param cat The category for which expenses should be returned.
+     * @param mon The month for which expenses should be returned.
+     * @param yea The year for which expenses should be returned.
+     * @return A list of expenses that match the given criteria.
+     */
     public List<Expense> getExpenses(User us, Category cat, int mon, int yea) {
         List<Expense> ans = new ArrayList<Expense>();
 
@@ -122,6 +164,12 @@ public class ExpenseDao {
         return ans;
     }
 
+    /**
+     * Retrieves all the expenses for the specified user and category for all months and years.
+     * @param us The user for which expenses should be returned.
+     * @param cat The category for which expenses should be returned.
+     * @return A list of expenses that match the given criteria.
+     */
     public List<Expense> getExpenses(User us, Category cat) {
         List<Expense> ans = new ArrayList<Expense>();
 

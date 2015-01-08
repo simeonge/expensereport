@@ -50,6 +50,9 @@ public class ViewExpenses extends ListActivity {
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
+        /** Title which displays category name. */
+        private TextView title;
+
         // Called when the action mode is created; startActionMode() was called
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -63,7 +66,9 @@ public class ViewExpenses extends ListActivity {
         // may be called multiple times if the mode is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
+            title = (TextView) findViewById(R.id.exCat);
+            title.setClickable(false); // prevent navigation away from activity
+            return true; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item
@@ -98,6 +103,8 @@ public class ViewExpenses extends ListActivity {
                 }
             });
             aMode = null;
+
+            title.setClickable(true); // restore category name click
         }
     };
 
@@ -105,11 +112,8 @@ public class ViewExpenses extends ListActivity {
      * Gets the all the expenses for a particular category.
      */
     private void populateExpenses() {
-        // retrieve all expenses for the user and category and this month and year
-        List<Expense> exs = exSource.getExpenses(curUser, curCat);
-
-        TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
+        // retrieve all expenses for the user and category and specified month and year
+        List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR));
 
         // use adapter to show elements in list
         ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
@@ -203,14 +207,14 @@ public class ViewExpenses extends ListActivity {
                     // can be added
                     try {
                         Expense ex = exSource.newExpense(Float.parseFloat(cost), desc,
-                                date.get(Calendar.DATE), date.get(Calendar.MONTH) + 1,
+                                date.get(Calendar.DATE), date.get(Calendar.MONTH),
                                 date.get(Calendar.YEAR), curUser, curCat);
                         adapter.add(ex);
                         adapter.notifyDataSetChanged();
                         dia.dismiss();
                         // update total
                         TextView total = (TextView) findViewById(R.id.exTotal);
-                        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
+                        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
                     } catch (NumberFormatException ne) {
                         enterCost.setError("Please enter a valid dollar amount.");
                     }
@@ -233,7 +237,7 @@ public class ViewExpenses extends ListActivity {
         aa.notifyDataSetChanged();
         // update total
         TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText("Total: " + exSource.getTotalCost(curUser, curCat));
+        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
     }
 
     @Override
@@ -261,6 +265,11 @@ public class ViewExpenses extends ListActivity {
         // open data source
         exSource = new ExpenseDao(this);
         exSource.open();
+
+        // display total for user, cat, month/year
+        TextView total = (TextView) findViewById(R.id.exTotal);
+        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+
         populateExpenses(); // display expenses for the category
     }
 

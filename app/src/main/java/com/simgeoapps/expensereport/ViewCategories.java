@@ -153,6 +153,13 @@ public class ViewCategories extends ListActivity {
             TextView title = (TextView) getActivity().findViewById(R.id.catMon);
             title.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
 
+            // refresh
+            TextView total = (TextView) getActivity().findViewById(R.id.monYTot);
+            ExpenseDao exSource = new ExpenseDao(getActivity());
+            exSource.open();
+            total.setText("Total: " + exSource.getTotalCost(GlobalConfig.getCurrentUser(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+            exSource.close();
+
             // refresh categories; must show new totals for the new month/year
 
         }
@@ -333,7 +340,7 @@ public class ViewCategories extends ListActivity {
                     // can be changed
                     aa.remove(catToEdi); // remove category from adapter
                     catToEdi.setCategory(catName); // change name in object
-                    catSource.editCaterogy(catToEdi, curUser); // change in db
+                    catSource.editCategory(catToEdi, curUser); // change in db
                     aa.add(catToEdi); // add category back to adapter
                     aa.notifyDataSetChanged();
                     dia.dismiss();
@@ -372,6 +379,12 @@ public class ViewCategories extends ListActivity {
                 aa.remove(catToDel); // remove from adapter
                 aa.notifyDataSetChanged(); // update view
                 dia.dismiss(); // close dialog
+                // update total
+                TextView total = (TextView) findViewById(R.id.monYTot);
+                ExpenseDao exSource = new ExpenseDao(ViewCategories.this);
+                exSource.open();
+                total.setText("Total: " + exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+                exSource.close();
             }
         });
     }
@@ -394,6 +407,15 @@ public class ViewCategories extends ListActivity {
                 new DateSelector().show(getFragmentManager(), "configDatePicker");
             }
         });
+
+        // TODO make exSource instance var.
+        // TODO method includes expenses even for deleted categories; possibly have to make it a client side calculation
+        // display month/year total for this user for all categories
+        TextView total = (TextView) findViewById(R.id.monYTot);
+        ExpenseDao exSource = new ExpenseDao(this);
+        exSource.open();
+        total.setText("Total: " + exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+        exSource.close();
 
         // open data source
         catSource = new CategoryDao(this);

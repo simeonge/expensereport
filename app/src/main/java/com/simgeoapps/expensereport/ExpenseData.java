@@ -33,7 +33,7 @@ public class ExpenseData extends SQLiteOpenHelper {
     public static final String COST_COLUMN = "cost";
     public static final String DESCRIPTION_COLUMN = "description";
     public static final String DAY_COLUMN = "day";
-    public static final String MONTH_COLUMN = "month";
+    public static final String MONTH_COLUMN = "month"; // 0-based
     public static final String YEAR_COLUMN = "year";
 
     // sql statements
