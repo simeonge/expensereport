@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
@@ -35,6 +36,9 @@ public class ViewCategories extends ListActivity {
 
     /** Category data source. */
     private CategoryDao catSource;
+
+    /** Expense data source. Used for calculating total cost. */
+    private ExpenseDao exSource;
 
     /** Currently active user, as specified in global config class. */
     private User curUser;
@@ -170,12 +174,22 @@ public class ViewCategories extends ListActivity {
      */
     private void populateCats() {
         // get all categories for specified user
-        List<Category> values = catSource.getCategories(curUser);
+        final List<Category> values = catSource.getCategories(curUser);
 
         // use adapter to show the elements in a ListView
         // change to custom layout if necessary
         final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
-                android.R.layout.simple_list_item_activated_1, values);
+                android.R.layout.simple_list_item_activated_2, android.R.id.text1, values) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView text1 = (TextView) view.findViewById(android.R.id.text1);
+                TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+                text1.setText(values.get(position).toString());
+                text2.setText(exSource.getTotalCost(curUser, values.get(position), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+                return view;
+            }
+        };
         setListAdapter(adapter);
 
         final ListView lv = getListView();
@@ -408,16 +422,16 @@ public class ViewCategories extends ListActivity {
             }
         });
 
-        // TODO make exSource instance var.
+        // open data sources
+        // expense source used for getting total cost
+        exSource = new ExpenseDao(this);
+        exSource.open();
         // TODO method includes expenses even for deleted categories; possibly have to make it a client side calculation
+        // TODO handle income
         // display month/year total for this user for all categories
         TextView total = (TextView) findViewById(R.id.monYTot);
-        ExpenseDao exSource = new ExpenseDao(this);
-        exSource.open();
         total.setText("Total: " + exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-        exSource.close();
 
-        // open data source
         catSource = new CategoryDao(this);
         catSource.open();
         populateCats(); // display user's categories
@@ -426,12 +440,14 @@ public class ViewCategories extends ListActivity {
     @Override
     protected void onResume() {
         catSource.open();
+        exSource.open();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
         catSource.close();
+        exSource.close();
         super.onPause();
     }
 
