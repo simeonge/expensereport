@@ -25,7 +25,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.text.NumberFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -148,24 +150,16 @@ public class ViewCategories extends ListActivity {
             GlobalConfig.setDate(c); // change global date
             date = c; // change var for this activity
 
-            // change view
-//            getActivity().recreate(); can recreate, or finish then start again
-//            Intent intent = getActivity().getIntent();
-//            getActivity().finish();
-//            startActivity(intent);
-            // change title
+            // change title to reflect new date
             TextView title = (TextView) getActivity().findViewById(R.id.catMon);
             title.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
 
-            // refresh
+            // refresh month/year total for all categories
             TextView total = (TextView) getActivity().findViewById(R.id.monYTot);
-            ExpenseDao exSource = new ExpenseDao(getActivity());
-            exSource.open();
-            total.setText("Total: " + exSource.getTotalCost(GlobalConfig.getCurrentUser(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-            exSource.close();
+            total.setText("Total: " + ((ViewCategories) getActivity()).getMonthlyTotal());
 
             // refresh categories; must show new totals for the new month/year
-
+            ((ArrayAdapter<Category>) ((ViewCategories) getActivity()).getListAdapter()).notifyDataSetChanged();
         }
     }
 
@@ -179,12 +173,13 @@ public class ViewCategories extends ListActivity {
         // use adapter to show the elements in a ListView
         // change to custom layout if necessary
         final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
-                android.R.layout.simple_list_item_activated_2, android.R.id.text1, values) {
+                R.layout.row_layout_category, R.id.catLabel, values) {
+            // override get view in order to allow two items to be displayed: title and total cost
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
-                TextView text1 = (TextView) view.findViewById(android.R.id.text1);
-                TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+                TextView text1 = (TextView) view.findViewById(R.id.catLabel);
+                TextView text2 = (TextView) view.findViewById(R.id.catCost);
                 text1.setText(values.get(position).toString());
                 text2.setText(exSource.getTotalCost(curUser, values.get(position), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
                 return view;
@@ -395,12 +390,24 @@ public class ViewCategories extends ListActivity {
                 dia.dismiss(); // close dialog
                 // update total
                 TextView total = (TextView) findViewById(R.id.monYTot);
-                ExpenseDao exSource = new ExpenseDao(ViewCategories.this);
-                exSource.open();
-                total.setText("Total: " + exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-                exSource.close();
+                total.setText("Total: " + getMonthlyTotal());
             }
         });
+    }
+
+    /**
+     * Calculates the sum total of all expenses for this user and specified month/year
+     * @return The formatted dollar amount that is the sum total.
+     */
+    public String getMonthlyTotal() {
+        List<Category> lc = catSource.getCategories(curUser);
+        Iterator<Category> itr =  lc.iterator();
+        float total = 0.0f;
+        while (itr.hasNext()) {
+            total += Float.parseFloat(exSource.getTotalCost(curUser, itr.next(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)).substring(1).replace(",", ""));
+        }
+
+        return NumberFormat.getCurrencyInstance().format(total);
     }
 
     @Override
@@ -423,18 +430,22 @@ public class ViewCategories extends ListActivity {
         });
 
         // open data sources
-        // expense source used for getting total cost
+        // expense source used only for getting total cost
         exSource = new ExpenseDao(this);
         exSource.open();
-        // TODO method includes expenses even for deleted categories; possibly have to make it a client side calculation
-        // TODO handle income
-        // display month/year total for this user for all categories
-        TextView total = (TextView) findViewById(R.id.monYTot);
-        total.setText("Total: " + exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-
+        // for adding and deleting categories
         catSource = new CategoryDao(this);
         catSource.open();
+
+        // display month/year total for this user for all categories
+        TextView total = (TextView) findViewById(R.id.monYTot);
+        total.setText("Total: " + getMonthlyTotal());
+
         populateCats(); // display user's categories
+
+        // TODO use asynctask for db queries
+        // TODO order categories and expenses
+        // TODO migrate to bigdecimal for currency
     }
 
     @Override

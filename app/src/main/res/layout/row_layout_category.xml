@@ -2,17 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="10dip"
-    android:paddingRight="10dip"
-    android:paddingTop="10dip"
-    android:paddingBottom="10dip" >
+    android:paddingTop="2dip"
+    android:paddingBottom="2dip"
+    android:background="?android:attr/activatedBackgroundIndicator" >
 
     <TextView
         android:id="@+id/catLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="?android:attr/listPreferredItemPaddingStart"
+        android:layout_marginLeft="?android:attr/listPreferredItemPaddingLeft"
+        android:layout_marginTop="10dip"
+        android:layout_marginBottom="10dip"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:gravity="center_vertical"
         android:singleLine="true" >
     </TextView>
 
@@ -20,6 +22,11 @@
         android:id="@+id/catCost"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:layout_marginRight="?android:attr/listPreferredItemPaddingRight"
+        android:layout_marginTop="10dip"
+        android:layout_marginBottom="10dip"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
         android:gravity="end" >
     </TextView>
 </RelativeLayout>

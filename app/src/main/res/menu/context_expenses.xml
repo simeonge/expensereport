@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.simgeoapps.expensereport.ViewExpenses">
     <item android:id="@+id/action_del"
+        android:icon="@drawable/ic_action_discard"
         android:title="@string/del"
         android:orderInCategory="2"
         android:showAsAction="ifRoom" />

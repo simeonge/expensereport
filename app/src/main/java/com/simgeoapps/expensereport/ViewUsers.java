@@ -37,6 +37,9 @@ public class ViewUsers extends ListActivity {
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
+        /** To temporarily store listener when removed. */
+        private AdapterView.OnItemClickListener lstn;
+
         // Called when the action mode is created; startActionMode() was called
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -50,7 +53,12 @@ public class ViewUsers extends ListActivity {
         // may be called multiple times if the mode is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
+            // disable other listeners temporarily to prevent multiple actions
+            // disable on item click which would start expenses activity
+            ListView lv = getListView();
+            lstn = lv.getOnItemClickListener();
+            lv.setOnItemClickListener(null);
+            return true; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item
@@ -90,6 +98,9 @@ public class ViewUsers extends ListActivity {
                 }
             });
             aMode = null;
+
+            // restore listeners
+            getListView().setOnItemClickListener(lstn);
         }
     };
 
