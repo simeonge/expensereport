@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -201,12 +202,12 @@ public class ViewExpenses extends ListActivity {
                 // perform checks and add if pass
                 if (cost.equals("")) { // must not be empty
                     enterCost.setError("Please enter a dollar amount.");
-                } else if (!Pattern.matches("^(\\d{1,4})?(\\.\\d{0,2})?$", cost)) { // must be $$
+                } else if (!Pattern.matches("^(\\d{1,10})?(\\.\\d{0,2})?$", cost)) { // must be $$
                     enterCost.setError("Please enter a valid dollar amount.");
                 } else {
                     // can be added
                     try {
-                        Expense ex = exSource.newExpense(Float.parseFloat(cost), desc,
+                        Expense ex = exSource.newExpense(new BigDecimal(cost), desc,
                                 date.get(Calendar.DATE), date.get(Calendar.MONTH),
                                 date.get(Calendar.YEAR), curUser, curCat);
                         adapter.add(ex);

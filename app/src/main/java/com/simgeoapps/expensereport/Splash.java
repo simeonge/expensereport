@@ -52,7 +52,7 @@ public class Splash extends Activity {
                 begin();
                 Splash.this.finish();
             }
-        }, 2000);
+        }, 1000);
 
     }
 

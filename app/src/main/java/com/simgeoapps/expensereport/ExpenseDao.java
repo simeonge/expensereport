@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +35,12 @@ public class ExpenseDao {
         dbHelper.close();
     }
 
-    public Expense newExpense(float cost, String description, int day, int mon, int yea, User us,
+    public Expense newExpense(BigDecimal cost, String description, int day, int mon, int yea, User us,
                               Category cat) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_ID, us.getId());
         cv.put(ExpenseData.CATEGORY_ID, cat.getId());
-        cv.put(ExpenseData.COST_COLUMN, cost);
+        cv.put(ExpenseData.COST_COLUMN, cost.movePointRight(2).intValue());
         cv.put(ExpenseData.DESCRIPTION_COLUMN, description);
         cv.put(ExpenseData.DAY_COLUMN, Integer.toString(day));
         cv.put(ExpenseData.MONTH_COLUMN, Integer.toString(mon));
@@ -55,7 +56,7 @@ public class ExpenseDao {
         ans.setId(cur.getInt(0)); // expense id
         ans.setUserId(cur.getInt(1)); // user id
         ans.setCategoryId(cur.getInt(2)); // category id
-        ans.setCost(cur.getFloat(3)); // cost
+        ans.setCost(new BigDecimal(cur.getInt(3)).movePointLeft(2)); // cost from integer
         ans.setDescription(cur.getString(4)); // description
         ans.setDay(cur.getString(5)); // day
         ans.setMonth(cur.getString(6)); // month
@@ -93,15 +94,16 @@ public class ExpenseDao {
                 ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(month) + "' AND " +
                 ExpenseData.YEAR_COLUMN + " = '" + Integer.toString(year) + "'", null, null, null, null);
 
-        float totCost = 0.0f;
+        BigDecimal totCost = new BigDecimal(0);
         res.moveToFirst();
         while (!res.isAfterLast()) {
-            totCost += res.getFloat(0);
+            totCost = totCost.add(new BigDecimal(res.getInt(0)));
             res.moveToNext();
         }
+        res.close();
 
-        // format total as currency
-        return NumberFormat.getCurrencyInstance().format(totCost);
+        // move decimal point and format
+        return NumberFormat.getCurrencyInstance().format(totCost.movePointLeft(2));
     }
 
     /**
@@ -117,15 +119,16 @@ public class ExpenseDao {
                 us.getId() + "' AND " + ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(month) +
                 "' AND " + ExpenseData.YEAR_COLUMN + " = '" + Integer.toString(year) + "'", null, null, null, null);
 
-        float totCost = 0.0f;
+        BigDecimal totCost = new BigDecimal(0);
         res.moveToFirst();
         while (!res.isAfterLast()) {
-            totCost += res.getFloat(0);
+            totCost = totCost.add(new BigDecimal(res.getInt(0)));
             res.moveToNext();
         }
+        res.close();
 
-        // format total as currency and return
-        return NumberFormat.getCurrencyInstance().format(totCost);
+        // move decimal point and format
+        return NumberFormat.getCurrencyInstance().format(totCost.movePointLeft(2));
     }
 
     /**
@@ -137,7 +140,7 @@ public class ExpenseDao {
      * @return A list of expenses that match the given criteria.
      */
     public List<Expense> getExpenses(User us, Category cat, int mon, int yea) {
-        List<Expense> ans = new ArrayList<Expense>();
+        List<Expense> ans = new ArrayList<>();
 
         Cursor res = database.query(ExpenseData.EXPENSES_TABLE, colsToReturn, ExpenseData.USER_ID +
                 " = '" + us.getId() + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() +
@@ -150,7 +153,7 @@ public class ExpenseDao {
             ex.setId(res.getInt(0)); // expense id
             ex.setUserId(res.getInt(1)); // user id
             ex.setCategoryId(res.getInt(2)); // categor id
-            ex.setCost(res.getFloat(3)); // cost
+            ex.setCost(new BigDecimal(res.getInt(3)).movePointLeft(2)); // cost
             ex.setDescription(res.getString(4)); // description
             ex.setDay(res.getString(5)); // day
             ex.setMonth(res.getString(6)); // month
@@ -171,7 +174,7 @@ public class ExpenseDao {
      * @return A list of expenses that match the given criteria.
      */
     public List<Expense> getExpenses(User us, Category cat) {
-        List<Expense> ans = new ArrayList<Expense>();
+        List<Expense> ans = new ArrayList<>();
 
         Cursor res = database.query(ExpenseData.EXPENSES_TABLE, colsToReturn, ExpenseData.USER_ID +
                 " = '" + us.getId() + "' AND " + ExpenseData.CATEGORY_ID + " = '" +
@@ -183,7 +186,7 @@ public class ExpenseDao {
             ex.setId(res.getInt(0)); // expense id
             ex.setUserId(res.getInt(1)); // user id
             ex.setCategoryId(res.getInt(2)); // category id
-            ex.setCost(res.getFloat(3)); // cost
+            ex.setCost(new BigDecimal(res.getInt(3)).movePointLeft(2)); // cost
             ex.setDescription(res.getString(4)); // description
             ex.setDay(res.getString(5)); // day
             ex.setMonth(res.getString(6)); // month

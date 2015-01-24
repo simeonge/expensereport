@@ -1,5 +1,6 @@
 package com.simgeoapps.expensereport;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 
 /**
@@ -11,7 +12,7 @@ public class Expense {
     private int id;
     private int userId;
     private int categoryId;
-    private float cost;
+    private BigDecimal cost;
     private String description;
     private String day;
     private String month;
@@ -42,11 +43,11 @@ public class Expense {
         this.categoryId = categoryID;
     }
 
-    public float getCost() {
+    public BigDecimal getCost() {
         return cost;
     }
 
-    public void setCost(float cost) {
+    public void setCost(BigDecimal cost) {
         this.cost = cost;
     }
 

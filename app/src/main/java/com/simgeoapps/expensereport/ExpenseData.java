@@ -30,7 +30,7 @@ public class ExpenseData extends SQLiteOpenHelper {
     public static final String CATEGORY_NAME = "category";
 
     public static final String EXPENSE_ID = "expense_id";
-    public static final String COST_COLUMN = "cost";
+    public static final String COST_COLUMN = "cost"; // in cents
     public static final String DESCRIPTION_COLUMN = "description";
     public static final String DAY_COLUMN = "day";
     public static final String MONTH_COLUMN = "month"; // 0-based
@@ -47,7 +47,7 @@ public class ExpenseData extends SQLiteOpenHelper {
     private static final String CREATE_EXPENSES_TABLE = "CREATE TABLE " + EXPENSES_TABLE +
             " (" + EXPENSE_ID + " integer primary key autoincrement, " + USER_ID +
             " integer not null, " + CATEGORY_ID + " integer not null, " + COST_COLUMN +
-            " real not null, " + DESCRIPTION_COLUMN + " text, " + DAY_COLUMN + " text not null, " +
+            " integer not null, " + DESCRIPTION_COLUMN + " text, " + DAY_COLUMN + " text not null, " +
             MONTH_COLUMN + " text not null, " + YEAR_COLUMN + " text not null);";
 
     // constructor

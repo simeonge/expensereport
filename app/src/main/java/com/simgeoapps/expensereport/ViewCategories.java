@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -402,9 +403,9 @@ public class ViewCategories extends ListActivity {
     public String getMonthlyTotal() {
         List<Category> lc = catSource.getCategories(curUser);
         Iterator<Category> itr =  lc.iterator();
-        float total = 0.0f;
+        BigDecimal total = new BigDecimal(0);
         while (itr.hasNext()) {
-            total += Float.parseFloat(exSource.getTotalCost(curUser, itr.next(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)).substring(1).replace(",", ""));
+            total = total.add(new BigDecimal(exSource.getTotalCost(curUser, itr.next(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)).substring(1).replace(",", "")));
         }
 
         return NumberFormat.getCurrencyInstance().format(total);
@@ -444,8 +445,7 @@ public class ViewCategories extends ListActivity {
         populateCats(); // display user's categories
 
         // TODO use asynctask for db queries
-        // TODO order categories and expenses
-        // TODO migrate to bigdecimal for currency
+        // TODO order categories
     }
 
     @Override

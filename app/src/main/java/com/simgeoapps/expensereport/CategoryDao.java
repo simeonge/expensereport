@@ -35,7 +35,9 @@ public class CategoryDao {
     public boolean exists(String category, User us) {
         Cursor res = database.query(ExpenseData.CATEGORIES_TABLE, colsToReturn, ExpenseData.CATEGORY_NAME +
                 " = '" + category + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null, null, null, null);
-        return res.getCount() > 0;
+        int cnt = res.getCount();
+        res.close();
+        return cnt > 0;
     }
 
     public Category newCategory(String cat, User us) {
@@ -73,7 +75,7 @@ public class CategoryDao {
 
     public List<Category> getCategories(User us) {
         // must return all categories for a certain user
-        List<Category> ans = new ArrayList<Category>();
+        List<Category> ans = new ArrayList<>();
 
         // query db and get all categories for user us
         Cursor res = database.query(ExpenseData.CATEGORIES_TABLE, colsToReturn,
