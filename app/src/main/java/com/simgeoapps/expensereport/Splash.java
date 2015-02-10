@@ -5,39 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
-import java.util.Calendar;
-import java.util.List;
-
 /**
- * Test Launcher activity.
+ * Launcher activity.
  * @author Simeon
  */
 public class Splash extends Activity {
-
-    /**
-     * Called during splash screen. Starts the ViewUsers activity.
-     */
-    public void begin() {
-        // here pass current month and year, and default/only user, and
-        UserDao uSource = new UserDao(this);
-        uSource.open();
-        List<User> lu = uSource.getAllUsers();
-
-        // if we have only one user, specify it in config, then go directly to categories class
-        if (lu.size() == 1) {
-            Intent it = new Intent(this, ViewCategories.class);
-            User soleUser = lu.get(0);
-            GlobalConfig.setCurrentUser(soleUser); // set default user if only one
-            GlobalConfig.setDate(Calendar.getInstance()); // use current date by default
-            startActivity(it); // start category activity
-        } else {
-            Intent intent = new Intent(this, ViewUsers.class);
-            GlobalConfig.setDate(Calendar.getInstance()); // use current date by default
-            startActivity(intent); // start user activity
-        }
-
-        uSource.close();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +21,16 @@ public class Splash extends Activity {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-                begin();
+                GlobalConfig gc = (GlobalConfig) getApplication();
+                if (gc.getCurrentUser() == null) {
+                    Intent it = new Intent(Splash.this, ViewUsers.class);
+                    startActivity(it);
+                    overridePendingTransition(0,0);
+                } else {
+                    Intent it = new Intent(Splash.this, ViewCategories.class);
+                    startActivity(it);
+                    overridePendingTransition(0,0);
+                }
                 Splash.this.finish();
             }
         }, 1000);

@@ -72,15 +72,17 @@ public class UserDao {
         }
     }
 
-    public void editUser(User name) {
+    public User editUser(User name) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_NAME, name.getName());
         database.update(ExpenseData.USERS_TABLE, cv, ExpenseData.USER_ID + " = '" + name.getId() + "'", null);
+        return name;
     }
 
-    public void deleteUser(User user) {
+    public User deleteUser(User user) {
         // will delete user only. categories and expenses will remain but cannot be accessed
         database.delete(ExpenseData.USERS_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
+        return user;
     }
 
     public List<User> getAllUsers() {

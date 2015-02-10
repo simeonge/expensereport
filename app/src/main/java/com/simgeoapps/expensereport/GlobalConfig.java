@@ -1,34 +1,54 @@
 package com.simgeoapps.expensereport;
 
+import android.app.Application;
+
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Class to hold global app settings
  * @author Simeon
  */
-public class GlobalConfig {
+public class GlobalConfig extends Application {
 
     /** Current app user.*/
-    private static User currentUser;
+    private User currentUser;
 
     /** Month and year values for expenses, initialized to today's month and year by default. */
-    private static Calendar currentDate;
+    private Calendar currentDate;
 
     // getters and setters
-    public static User getCurrentUser() {
+    public User getCurrentUser() {
         return currentUser;
     }
 
-    public static Calendar getDate() {
+    public Calendar getDate() {
         return currentDate;
     }
 
-    public static void setCurrentUser(User user) {
+    public void setCurrentUser(User user) {
         currentUser = user;
     }
 
-    public static void setDate(Calendar date) {
+    public void setDate(Calendar date) {
         currentDate = date;
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // here pass current month and year, and default/only user, and
+        setDate(Calendar.getInstance()); // use current date by default
+        UserDao uSource = new UserDao(this);
+        uSource.open();
+        List<User> lu = uSource.getAllUsers(); // TODO cache
+
+        if (lu.size() == 1) {
+            User soleUser = lu.get(0);
+            setCurrentUser(soleUser); // set default user if only one
+        }
+
+        uSource.close();
+    }
 }

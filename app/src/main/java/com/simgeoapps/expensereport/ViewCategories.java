@@ -148,7 +148,8 @@ public class ViewCategories extends ListActivity {
             // specify new date in config
             Calendar c = Calendar.getInstance();
             c.set(year, month, day); // set new date
-            GlobalConfig.setDate(c); // change global date
+            GlobalConfig gc = (GlobalConfig) getActivity().getApplication();
+            gc.setDate(c); // change global date
             date = c; // change var for this activity
 
             // change title to reflect new date
@@ -200,6 +201,7 @@ public class ViewCategories extends ListActivity {
                 Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
                 intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
                 startActivity(intent);
+                overridePendingTransition(0,0);
             }
         });
 
@@ -417,8 +419,9 @@ public class ViewCategories extends ListActivity {
         setContentView(R.layout.activity_view_categories);
 
         // retrieve selected user's user ID from config
-        curUser = GlobalConfig.getCurrentUser();
-        date = GlobalConfig.getDate();
+        GlobalConfig settings = (GlobalConfig) getApplication();
+        curUser = settings.getCurrentUser();
+        date = settings.getDate();
 
         // set month selector listener
         final TextView title = (TextView) findViewById(R.id.catMon);
@@ -443,9 +446,6 @@ public class ViewCategories extends ListActivity {
         total.setText("Total: " + getMonthlyTotal());
 
         populateCats(); // display user's categories
-
-        // TODO use asynctask for db queries
-        // TODO order categories
     }
 
     @Override
@@ -481,6 +481,7 @@ public class ViewCategories extends ListActivity {
         } else if (id == R.id.switch_user) {
             Intent intent = new Intent(this, ViewUsers.class);
             startActivity(intent); // start user activity
+            overridePendingTransition(0,0);
             return true;
         }
         return super.onOptionsItemSelected(item);

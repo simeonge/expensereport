@@ -3,6 +3,7 @@
     package="com.simgeoapps.expensereport" >
 
     <application
+        android:name="com.simgeoapps.expensereport.GlobalConfig"
         android:allowBackup="true"
         android:icon="@drawable/launcher_icon"
         android:logo="@drawable/launcher_icon"
@@ -11,7 +12,9 @@
         <activity
             android:name="com.simgeoapps.expensereport.Splash"
             android:label="@string/title_activity_launch_test"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"
+            >
             <intent-filter> <!-- put launcher title here, else inherit from parent activity -->
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -19,19 +22,27 @@
         </activity>
         <activity
             android:name="com.simgeoapps.expensereport.EnterExpense"
-            android:label="@string/title_activity_enter_expenses" >
+            android:label="@string/title_activity_enter_expenses"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.simgeoapps.expensereport.ViewExpenses"
-            android:label="@string/title_activity_view_expenses" >
+            android:label="@string/title_activity_view_expenses"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.simgeoapps.expensereport.ViewCategories"
-            android:label="@string/title_activity_view_categories" >
+            android:label="@string/title_activity_view_categories"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.simgeoapps.expensereport.ViewUsers"
-            android:label="@string/title_activity_view_users" >
+            android:label="@string/title_activity_view_users"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" >
         </activity>
     </application>
 

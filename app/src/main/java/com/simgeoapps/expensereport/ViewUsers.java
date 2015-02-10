@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -105,52 +106,114 @@ public class ViewUsers extends ListActivity {
     };
 
     /**
-     * Method to populate the list view all users.
+     * Class to asynchronously retrieve users from database.
      */
-    private void populateListView() {
-        // get all users from db
-        List<User> values = uSource.getAllUsers();
+    private class GetUsers extends AsyncTask<Void, Void, List<User>> {
+        @Override
+        protected List<User> doInBackground(Void... params) {
+            // get all users from db
+            return uSource.getAllUsers();
+        }
 
-        // use the SimpleCursorAdapter to show the elements in a ListView
-        final ArrayAdapter<User> adapter = new ArrayAdapter<User>(this,
-                android.R.layout.simple_list_item_activated_1, values);
-        setListAdapter(adapter);
+        @Override
+        protected void onPostExecute(List<User> result) {
+            // showDialog("Downloaded " + result + " bytes");
+            // use the SimpleCursorAdapter to show the elements in a ListView
+            final ArrayAdapter<User> adapter = new ArrayAdapter<>(ViewUsers.this,
+                    android.R.layout.simple_list_item_activated_1, result);
+            setListAdapter(adapter);
 
-        final ListView lv = getListView();
-        // set item onclick listener to each item in list, to launch categories activity
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                // retrieve selected user
-                User us = adapter.getItem(i);
+            final ListView lv = getListView();
+            // set item onclick listener to each item in list, to launch categories activity
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    // retrieve selected user
+                    User us = adapter.getItem(i);
 
-                // set selected user in config
-                GlobalConfig.setCurrentUser(us);
+                    // set selected user in config
+                    GlobalConfig gc = (GlobalConfig) getApplication();
+                    gc.setCurrentUser(us);
 
-                // start ViewCategories activity
-                Intent intent = new Intent(ViewUsers.this, ViewCategories.class);
-                startActivity(intent);
-            }
-        });
-
-        // set long click listener, to display CAB
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            // Called when the user long-clicks on an item
-            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
-                if (aMode != null) {
-                    return false;
+                    // start ViewCategories activity
+                    Intent intent = new Intent(ViewUsers.this, ViewCategories.class);
+                    startActivity(intent);
+                    overridePendingTransition(0,0);
                 }
-                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-                // mark item at position i as selected
-                lv.setItemChecked(i, true);
-                // Start the CAB using the ActionMode.Callback defined above
-                aMode = ViewUsers.this.startActionMode(mActionModeCallback);
-                return true;
-            }
-        });
+            });
 
-        if (values.size() == 0) {
-            addUser();
+            // set long click listener, to display CAB
+            lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                // Called when the user long-clicks on an item
+                public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                    if (aMode != null) {
+                        return false;
+                    }
+                    lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                    // mark item at position i as selected
+                    lv.setItemChecked(i, true);
+                    // Start the CAB using the ActionMode.Callback defined above
+                    aMode = ViewUsers.this.startActionMode(mActionModeCallback);
+                    return true;
+                }
+            });
+
+            if (result.size() == 0) {
+                addUser();
+            }
+        }
+    }
+
+    /**
+     * Class to asynchronously add new user to database.
+     */
+    private class AddUser extends AsyncTask<String, Void, User> {
+        @Override
+        protected User doInBackground(String... params) {
+            return uSource.newUser(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(User result) {
+            // get adapter
+            ArrayAdapter<User> adapter = (ArrayAdapter<User>) getListAdapter();
+            // add new user to adapter and update view
+            adapter.add(result);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Class to asynchronously edit a user's name in database.
+     */
+    private class EditUser extends AsyncTask<User, Void, User> {
+        @Override
+        protected User doInBackground(User... params) {
+            return uSource.editUser(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(User result) {
+            ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
+            aa.add(result); // add user back to adapter
+            aa.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Class to asynchronously delete a user from database.
+     */
+    private class DeleteUser extends AsyncTask<User, Void, User> {
+        @Override
+        protected User doInBackground(User... params) {
+            return uSource.deleteUser(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(User result) {
+            ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
+            aa.remove(result); // remove from adapter
+            aa.notifyDataSetChanged(); // update view
         }
     }
 
@@ -195,9 +258,6 @@ public class ViewUsers extends ListActivity {
 
         dia.show(); // show dialog
 
-        // retrieve adapter to add user to the list
-        final ArrayAdapter<User> adapter = (ArrayAdapter<User>) getListAdapter();
-
         // override onclick for OK button; must be done after show()ing to retrieve OK button
         dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -212,9 +272,7 @@ public class ViewUsers extends ListActivity {
                     enterName.setError("This user already exists.");
                 } else {
                     // can be added
-                    User us = uSource.newUser(username);
-                    adapter.add(us);
-                    adapter.notifyDataSetChanged();
+                    new AddUser().execute(username);
                     dia.dismiss();
                 }
             }
@@ -282,11 +340,10 @@ public class ViewUsers extends ListActivity {
                     enterName.setError("This user already exists.");
                 } else {
                     // can be changed
+                    ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
                     aa.remove(userToEdi); // remove user from adapter
-                    userToEdi.setName(username); // change name in object
-                    uSource.editUser(userToEdi); // change in db
-                    aa.add(userToEdi); // add user back to adapter
-                    aa.notifyDataSetChanged();
+                    userToEdi.setName(username);
+                    new EditUser().execute(userToEdi); // change name and add it back
                     dia.dismiss();
                 }
             }
@@ -320,9 +377,7 @@ public class ViewUsers extends ListActivity {
         dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                uSource.deleteUser(userToDel); // delete user from db
-                aa.remove(userToDel); // remove from adapter
-                aa.notifyDataSetChanged(); // update view
+                new DeleteUser().execute(userToDel); // delete user from db
                 dia.dismiss(); // close dialog
             }
         });
@@ -336,7 +391,8 @@ public class ViewUsers extends ListActivity {
         // open data source
         uSource = new UserDao(this);
         uSource.open();
-        populateListView(); // fill list with users
+        // retrieve users asynchronously
+        new GetUsers().execute();
     }
 
     @Override

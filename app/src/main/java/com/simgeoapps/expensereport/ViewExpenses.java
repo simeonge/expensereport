@@ -225,7 +225,14 @@ public class ViewExpenses extends ListActivity {
     }
 
     /**
-     * Method to delete selected expense. Called when Delete button is click in context menu.
+     * Method to edit selected expense. Called when Edit button is clicked in context menu.
+     */
+    private void editExpense() {
+        // TODO implement
+    }
+
+    /**
+     * Method to delete selected expense. Called when Delete button is clicked in context menu.
      */
     private void deleteExpense() {
         // get list view and list adapter
@@ -247,8 +254,9 @@ public class ViewExpenses extends ListActivity {
         setContentView(R.layout.activity_view_expenses);
 
         // get intent
-        curUser = GlobalConfig.getCurrentUser();
-        date = GlobalConfig.getDate();
+        GlobalConfig settings = (GlobalConfig) getApplication();
+        curUser = settings.getCurrentUser();
+        date = settings.getDate();
         curCat = (Category) getIntent().getSerializableExtra(IntentTags.CURRENT_CATEGORY);
         // set totalCost = ; here
 
@@ -260,6 +268,7 @@ public class ViewExpenses extends ListActivity {
             public void onClick(View v) {
                 Intent it = new Intent(ViewExpenses.this, ViewCategories.class);
                 startActivity(it);
+                overridePendingTransition(0,0);
             }
         });
 
@@ -305,6 +314,7 @@ public class ViewExpenses extends ListActivity {
         } else if (id == R.id.switch_user) {
             Intent intent = new Intent(this, ViewUsers.class);
             startActivity(intent); // start user activity
+            overridePendingTransition(0,0);
             return true;
         }
         return super.onOptionsItemSelected(item);
