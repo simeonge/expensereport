@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -110,32 +111,98 @@ public class ViewExpenses extends ListActivity {
     };
 
     /**
-     * Gets the all the expenses for a particular category.
+     * Class to asynchronously retrieve expenses from database.
      */
-    private void populateExpenses() {
-        // retrieve all expenses for the user and category and specified month and year
-        List<Expense> exs = exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR));
+    private class GetExpenses extends AsyncTask<Void, Void, List<Expense>> {
+        @Override
+        protected List<Expense> doInBackground(Void... params) {
+            // retrieve all expenses for the user and category and specified month and year
+            return exSource.getExpenses(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR));
+        }
 
-        // use adapter to show elements in list
-        ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(this,
-                android.R.layout.simple_list_item_activated_1, exs);
-        setListAdapter(aa);
+        @Override
+        protected void onPostExecute(final List<Expense> result) {
+            // use adapter to show elements in list
+            ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(ViewExpenses.this,
+                    android.R.layout.simple_list_item_activated_1, result);
+            setListAdapter(aa);
 
-        final ListView lv = getListView();
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            // Called when the user long-clicks on an item
-            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
-                if (aMode != null) {
-                    return false;
+            final ListView lv = getListView();
+            lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                // Called when the user long-clicks on an item
+                public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                    if (aMode != null) {
+                        return false;
+                    }
+                    lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                    // mark item at position i as selected
+                    lv.setItemChecked(i, true);
+                    // Start the CAB using the ActionMode.Callback defined above
+                    aMode = ViewExpenses.this.startActionMode(mActionModeCallback);
+                    return true;
                 }
-                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-                // mark item at position i as selected
-                lv.setItemChecked(i, true);
-                // Start the CAB using the ActionMode.Callback defined above
-                aMode = ViewExpenses.this.startActionMode(mActionModeCallback);
-                return true;
-            }
-        });
+            });
+        }
+    }
+
+    /**
+     * Class to asynchronously add new expense to database.
+     */
+    private class AddExpense extends AsyncTask<String, Void, Expense> {
+        @Override
+        protected Expense doInBackground(String... params) {
+            return exSource.newExpense(new BigDecimal(params[0]), params[1],
+                    date.get(Calendar.DATE), date.get(Calendar.MONTH),
+                    date.get(Calendar.YEAR), curUser, curCat);
+        }
+
+        @Override
+        protected void onPostExecute(Expense result) {
+            ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+            aa.add(result);
+            aa.notifyDataSetChanged();
+
+            // update total
+            TextView total = (TextView) findViewById(R.id.exTotal);
+            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+        }
+    }
+
+    /**
+     * Class to asynchronously edit an expense in database.
+     */
+    private class EditExpense extends AsyncTask<Expense, Void, Expense> {
+        @Override
+        protected Expense doInBackground(Expense... params) {
+            // TODO use
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Expense result) {
+
+        }
+    }
+
+    /**
+     * Class to asynchronously delete an expense from database.
+     */
+    private class DeleteExpense extends AsyncTask<Expense, Void, Expense> {
+        @Override
+        protected Expense doInBackground(Expense... params) {
+            return exSource.deleteExpense(params[0]); // delete selected item from db
+        }
+
+        @Override
+        protected void onPostExecute(Expense result) {
+            ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+            aa.remove(result); // remove selected item from adapter
+            aa.notifyDataSetChanged();
+
+            // update total
+            TextView total = (TextView) findViewById(R.id.exTotal);
+            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+        }
     }
 
     /**
@@ -206,19 +273,8 @@ public class ViewExpenses extends ListActivity {
                     enterCost.setError("Please enter a valid dollar amount.");
                 } else {
                     // can be added
-                    try {
-                        Expense ex = exSource.newExpense(new BigDecimal(cost), desc,
-                                date.get(Calendar.DATE), date.get(Calendar.MONTH),
-                                date.get(Calendar.YEAR), curUser, curCat);
-                        adapter.add(ex);
-                        adapter.notifyDataSetChanged();
-                        dia.dismiss();
-                        // update total
-                        TextView total = (TextView) findViewById(R.id.exTotal);
-                        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-                    } catch (NumberFormatException ne) {
-                        enterCost.setError("Please enter a valid dollar amount.");
-                    }
+                    new AddExpense().execute(cost, desc);
+                    dia.dismiss();
                 }
             }
         });
@@ -240,12 +296,7 @@ public class ViewExpenses extends ListActivity {
         ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
         int pos = lv.getCheckedItemPosition(); // get pos of selected item
         Expense del = aa.getItem(pos); // get item in adapter at position pos
-        exSource.deleteExpense(del); // delete selected item from db
-        aa.remove(del); // remove selected item from adapter
-        aa.notifyDataSetChanged();
-        // update total
-        TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+        new DeleteExpense().execute(del); // delete expense async and update total
     }
 
     @Override
@@ -280,7 +331,7 @@ public class ViewExpenses extends ListActivity {
         TextView total = (TextView) findViewById(R.id.exTotal);
         total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
 
-        populateExpenses(); // display expenses for the category
+        new GetExpenses().execute(); // retrieve display expenses for the category
     }
 
     @Override

@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -55,6 +56,7 @@ public class ViewCategories extends ListActivity {
     /** Action mode for the context menu. */
     private ActionMode aMode;
 
+    /** Call back methods for the context menu. */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
         /** To temporarily store listener when removed. */
@@ -131,6 +133,9 @@ public class ViewCategories extends ListActivity {
         }
     };
 
+    /**
+     * Static class for the date picker dialog.
+     */
     public static class DateSelector extends DialogFragment
             implements DatePickerDialog.OnDateSetListener {
         @Override
@@ -166,60 +171,119 @@ public class ViewCategories extends ListActivity {
     }
 
     /**
-     * Method to populate the list view with all categories for specified user.
+     * Class to asynchronously retrieve categories from database.
      */
-    private void populateCats() {
-        // get all categories for specified user
-        final List<Category> values = catSource.getCategories(curUser);
+    private class GetCategories extends AsyncTask<Void, Void, List<Category>> {
+        @Override
+        protected List<Category> doInBackground(Void... params) {
+            return catSource.getCategories(curUser);
+        }
 
-        // use adapter to show the elements in a ListView
-        // change to custom layout if necessary
-        final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this,
-                R.layout.row_layout_category, R.id.catLabel, values) {
-            // override get view in order to allow two items to be displayed: title and total cost
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                TextView text1 = (TextView) view.findViewById(R.id.catLabel);
-                TextView text2 = (TextView) view.findViewById(R.id.catCost);
-                text1.setText(values.get(position).toString());
-                text2.setText(exSource.getTotalCost(curUser, values.get(position), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-                return view;
-            }
-        };
-        setListAdapter(adapter);
-
-        final ListView lv = getListView();
-        // set item onclick listener to each item in list
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                // retrieve selected category
-                Category cat = adapter.getItem(i);
-
-                // pass category to ViewExpenses activity and start it
-                Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
-                intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
-                startActivity(intent);
-                overridePendingTransition(0,0);
-            }
-        });
-
-        // set long click listener, to display CAB
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            // Called when the user long-clicks on an item
-            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
-                if (aMode != null) {
-                    return false;
+        @Override
+        protected void onPostExecute(final List<Category> result) {
+            // use adapter to show the elements in a ListView
+            // change to custom layout if necessary
+            final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(ViewCategories.this,
+                    R.layout.row_layout_category, R.id.catLabel, result) {
+                // override get view in order to allow two items to be displayed: title and total cost
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View view = super.getView(position, convertView, parent);
+                    TextView text1 = (TextView) view.findViewById(R.id.catLabel);
+                    TextView text2 = (TextView) view.findViewById(R.id.catCost);
+                    text1.setText(result.get(position).toString());
+                    text2.setText(exSource.getTotalCost(curUser, result.get(position), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+                    return view;
                 }
-                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-                // mark item at position i as selected
-                lv.setItemChecked(i, true);
-                // Start the CAB using the ActionMode.Callback defined above
-                aMode = ViewCategories.this.startActionMode(mActionModeCallback);
-                return true;
-            }
-        });
+            };
+            setListAdapter(adapter);
+
+            final ListView lv = getListView();
+            // set item onclick listener to each item in list
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    // retrieve selected category
+                    Category cat = adapter.getItem(i);
+
+                    // pass category to ViewExpenses activity and start it
+                    Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
+                    intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
+                    startActivity(intent);
+                    overridePendingTransition(0,0);
+                }
+            });
+
+            // set long click listener, to display CAB
+            lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                // Called when the user long-clicks on an item
+                public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                    if (aMode != null) {
+                        return false;
+                    }
+                    lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                    // mark item at position i as selected
+                    lv.setItemChecked(i, true);
+                    // Start the CAB using the ActionMode.Callback defined above
+                    aMode = ViewCategories.this.startActionMode(mActionModeCallback);
+                    return true;
+                }
+            });
+        }
+    }
+
+    /**
+     * Class to asynchronously add new category to database.
+     */
+    private class AddCategory extends AsyncTask<String, Void, Category> {
+        @Override
+        protected Category doInBackground(String... params) {
+            return catSource.newCategory(params[0], curUser);
+        }
+
+        @Override
+        protected void onPostExecute(Category result) {
+            ArrayAdapter<Category> adapter = (ArrayAdapter<Category>) getListAdapter();
+            adapter.add(result);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Class to asynchronously edit a category name in database.
+     */
+    private class EditCategory extends AsyncTask<Category, Void, Category> {
+        @Override
+        protected Category doInBackground(Category... params) {
+            return catSource.editCategory(params[0], curUser); // change in db;
+        }
+
+        @Override
+        protected void onPostExecute(Category result) {
+            ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
+            aa.add(result); // add category back to adapter
+            aa.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Class to asynchronously delete a category from database.
+     */
+    private class DeleteCategory extends AsyncTask<Category, Void, Category> {
+        @Override
+        protected Category doInBackground(Category... params) {
+            return catSource.deleteCategory(params[0], curUser);
+        }
+
+        @Override
+        protected void onPostExecute(Category result) {
+            ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
+            aa.remove(result); // remove from adapter
+            aa.notifyDataSetChanged(); // update view
+            // update total
+            TextView total = (TextView) findViewById(R.id.monYTot);
+            total.setText("Total: " + getMonthlyTotal());
+        }
     }
 
     /**
@@ -280,9 +344,7 @@ public class ViewCategories extends ListActivity {
                     enterCat.setError("This category already exists.");
                 } else {
                     // can be added
-                    Category cat = catSource.newCategory(catName, curUser);
-                    adapter.add(cat);
-                    adapter.notifyDataSetChanged();
+                    new AddCategory().execute(catName);
                     dia.dismiss();
                 }
             }
@@ -352,9 +414,7 @@ public class ViewCategories extends ListActivity {
                     // can be changed
                     aa.remove(catToEdi); // remove category from adapter
                     catToEdi.setCategory(catName); // change name in object
-                    catSource.editCategory(catToEdi, curUser); // change in db
-                    aa.add(catToEdi); // add category back to adapter
-                    aa.notifyDataSetChanged();
+                    new EditCategory().execute(catToEdi);
                     dia.dismiss();
                 }
             }
@@ -387,13 +447,9 @@ public class ViewCategories extends ListActivity {
         dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                catSource.deleteCategory(catToDel, curUser); // delete category from db
-                aa.remove(catToDel); // remove from adapter
-                aa.notifyDataSetChanged(); // update view
+                // delete category from db
+                new DeleteCategory().execute(catToDel);
                 dia.dismiss(); // close dialog
-                // update total
-                TextView total = (TextView) findViewById(R.id.monYTot);
-                total.setText("Total: " + getMonthlyTotal());
             }
         });
     }
@@ -445,7 +501,7 @@ public class ViewCategories extends ListActivity {
         TextView total = (TextView) findViewById(R.id.monYTot);
         total.setText("Total: " + getMonthlyTotal());
 
-        populateCats(); // display user's categories
+        new GetCategories().execute(); // display user's categories
     }
 
     @Override

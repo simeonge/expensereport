@@ -60,17 +60,19 @@ public class CategoryDao {
         return ans;
     }
 
-    public void editCategory(Category cat, User us) {
+    public Category editCategory(Category cat, User us) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat.getCategory());
         database.update(ExpenseData.CATEGORIES_TABLE, cv, ExpenseData.CATEGORY_ID + " = '" +
                 cat.getId() + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null);
+        return cat;
     }
 
-    public void deleteCategory(Category cat, User us) {
+    public Category deleteCategory(Category cat, User us) {
         // will delete category only. expenses will remain but cannot be accessed
         database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.USER_ID + " = '" + us.getId()
                 + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "'", null);
+        return cat;
     }
 
     public List<Category> getCategories(User us) {

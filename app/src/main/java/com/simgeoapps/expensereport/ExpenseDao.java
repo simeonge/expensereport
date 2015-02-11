@@ -72,10 +72,11 @@ public class ExpenseDao {
         return null;
     }
 
-    public void deleteExpense(Expense exp) {
+    public Expense deleteExpense(Expense exp) {
         // returns number of rows affected
         database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.EXPENSE_ID + " = '" + exp.getId()
                 + "'", null);
+        return exp;
     }
 
     /**
