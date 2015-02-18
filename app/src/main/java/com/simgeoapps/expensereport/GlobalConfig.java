@@ -7,7 +7,6 @@ import java.util.List;
 
 /**
  * Class to hold global app settings
- * @author Simeon
  */
 public class GlobalConfig extends Application {
 

@@ -6,26 +6,30 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * User DAO. Supports adding, editing. Support for deleting users pending.
- * Created by Simeon on 11/6/2014.
+ * User DAO. Supports adding, editing, and deleting users.
  */
 public class UserDao {
-    // Database fields
+    /** Database instance which will be queried. */
     private SQLiteDatabase database;
+
+    /** Instance of the database helper class. */
     private ExpenseData dbHelper;
+
+    // columns
     private String[] colsToReturn = { ExpenseData.USER_ID,
             ExpenseData.USER_NAME };
 
+    // constructor creates an instance of the helper class
     public UserDao(Context context) {
         dbHelper = new ExpenseData(context);
     }
 
+    // methods to open and close DB
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
     }
@@ -34,12 +38,24 @@ public class UserDao {
         dbHelper.close();
     }
 
+    /**
+     * Determines if specified user exists in the database.
+     * @param user The user whose existence will be checked.
+     * @return True if user exists in DB, false otherwise.
+     */
     public boolean exists(String user) {
         Cursor res = database.query(ExpenseData.USERS_TABLE, colsToReturn, ExpenseData.USER_NAME +
                 " = '" + user + "'", null, null, null, null);
-        return res.getCount() > 0;
+        int cnt = res.getCount();
+        res.close();
+        return cnt > 0;
     }
 
+    /**
+     * Inserts a new user into the database.
+     * @param name The name of the user to insert.
+     * @return The inserted user.
+     */
     public User newUser(String name) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_NAME, name);
@@ -56,7 +72,7 @@ public class UserDao {
             cursor = database.query(ExpenseData.USERS_TABLE, colsToReturn, ExpenseData.USER_ID +
                     " = " + insertId, null, null, null, null);
         } catch (SQLiteConstraintException ce) {
-            Log.e("DB Error", "Unique constrain violated", ce);
+            // unique constraint violated
         }
 
         if (insertId > 0) {
@@ -67,11 +83,15 @@ public class UserDao {
             cursor.close();
             return us;
         } else {
-            Log.e("Insert User", "Unable to insert user");
-            return null;
+            return null; // insertion failed
         }
     }
 
+    /**
+     * Updates an existing user's name in the database.
+     * @param name The user object with the new name.
+     * @return The updated user.
+     */
     public User editUser(User name) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_NAME, name.getName());
@@ -79,12 +99,21 @@ public class UserDao {
         return name;
     }
 
+    /**
+     * Deletes an existing user from the database.
+     * @param user The user to be deleted.
+     * @return The deleted user.
+     */
     public User deleteUser(User user) {
         // will delete user only. categories and expenses will remain but cannot be accessed
         database.delete(ExpenseData.USERS_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
         return user;
     }
 
+    /**
+     * Retrieves all users from the database.
+     * @return The list of retrieved users.
+     */
     public List<User> getAllUsers() {
         List<User> ans = new ArrayList<User>();
 

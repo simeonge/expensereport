@@ -7,7 +7,6 @@ import android.util.Log;
 
 /**
  * Database helper class.
- * Created by Simeon on 10/5/2014.
  */
 public class ExpenseData extends SQLiteOpenHelper {
     // fields

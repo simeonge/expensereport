@@ -13,12 +13,15 @@ import java.util.List;
 
 /**
  * Expenses DAO. Supports adding, (editing), deleting expenses.
- * Created by Simeon on 10/16/2014.
  */
 public class ExpenseDao {
-    // Database fields
+    /** Instance of database which will be queried. */
     private SQLiteDatabase database;
+
+    /** Instance of the database helper class. */
     private ExpenseData dbHelper;
+
+    // columns
     private String[] colsToReturn = { ExpenseData.EXPENSE_ID, ExpenseData.USER_ID,
             ExpenseData.CATEGORY_ID, ExpenseData.COST_COLUMN, ExpenseData.DESCRIPTION_COLUMN,
             ExpenseData.DAY_COLUMN, ExpenseData.MONTH_COLUMN, ExpenseData.YEAR_COLUMN };
@@ -35,12 +38,23 @@ public class ExpenseDao {
         dbHelper.close();
     }
 
+    /**
+     * Insert a new expense record into the database.
+     * @param cost The cost property for this expense.
+     * @param description The description for this expense.
+     * @param day The integer day for the date that this expense occurred.
+     * @param mon The month that this expense occurred.
+     * @param yea The year that this expense occurred.
+     * @param us The user that this expense belongs to.
+     * @param cat The category under which this expense belongs.
+     * @return The inserted expense.
+     */
     public Expense newExpense(BigDecimal cost, String description, int day, int mon, int yea, User us,
                               Category cat) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_ID, us.getId());
         cv.put(ExpenseData.CATEGORY_ID, cat.getId());
-        cv.put(ExpenseData.COST_COLUMN, cost.movePointRight(2).intValue());
+        cv.put(ExpenseData.COST_COLUMN, cost.movePointRight(2).longValueExact());
         cv.put(ExpenseData.DESCRIPTION_COLUMN, description);
         cv.put(ExpenseData.DAY_COLUMN, Integer.toString(day));
         cv.put(ExpenseData.MONTH_COLUMN, Integer.toString(mon));
@@ -56,7 +70,7 @@ public class ExpenseDao {
         ans.setId(cur.getInt(0)); // expense id
         ans.setUserId(cur.getInt(1)); // user id
         ans.setCategoryId(cur.getInt(2)); // category id
-        ans.setCost(new BigDecimal(cur.getInt(3)).movePointLeft(2)); // cost from integer
+        ans.setCost(new BigDecimal(cur.getLong(3)).movePointLeft(2)); // cost from integer
         ans.setDescription(cur.getString(4)); // description
         ans.setDay(cur.getString(5)); // day
         ans.setMonth(cur.getString(6)); // month
@@ -67,11 +81,27 @@ public class ExpenseDao {
         return ans;
     }
 
-    public Expense editExpense() {
-        // TODO implement
-        return null;
+    /**
+     * Updates the cost and description of an existing expense.
+     * @param ex The expense to be updated, having the ID of an existing expense, and the new cost
+     *           and description.
+     * @return The updated expense.
+     */
+    public Expense editExpense(Expense ex) {
+        ContentValues cv = new ContentValues();
+        cv.put(ExpenseData.COST_COLUMN, ex.getCost().movePointRight(2).longValueExact());
+        cv.put(ExpenseData.DESCRIPTION_COLUMN, ex.getDescription());
+
+        database.update(ExpenseData.EXPENSES_TABLE, cv, ExpenseData.EXPENSE_ID + " = '" +
+                ex.getId() + "'", null);
+        return ex;
     }
 
+    /**
+     * Deletes an existing expense from the database.
+     * @param exp The expense to be deleted.
+     * @return The deleted expense.
+     */
     public Expense deleteExpense(Expense exp) {
         // returns number of rows affected
         database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.EXPENSE_ID + " = '" + exp.getId()
@@ -98,7 +128,7 @@ public class ExpenseDao {
         BigDecimal totCost = new BigDecimal(0);
         res.moveToFirst();
         while (!res.isAfterLast()) {
-            totCost = totCost.add(new BigDecimal(res.getInt(0)));
+            totCost = totCost.add(new BigDecimal(res.getLong(0)));
             res.moveToNext();
         }
         res.close();
@@ -123,7 +153,7 @@ public class ExpenseDao {
         BigDecimal totCost = new BigDecimal(0);
         res.moveToFirst();
         while (!res.isAfterLast()) {
-            totCost = totCost.add(new BigDecimal(res.getInt(0)));
+            totCost = totCost.add(new BigDecimal(res.getLong(0)));
             res.moveToNext();
         }
         res.close();
@@ -153,8 +183,8 @@ public class ExpenseDao {
             Expense ex = new Expense();
             ex.setId(res.getInt(0)); // expense id
             ex.setUserId(res.getInt(1)); // user id
-            ex.setCategoryId(res.getInt(2)); // categor id
-            ex.setCost(new BigDecimal(res.getInt(3)).movePointLeft(2)); // cost
+            ex.setCategoryId(res.getInt(2)); // category id
+            ex.setCost(new BigDecimal(res.getLong(3)).movePointLeft(2)); // cost
             ex.setDescription(res.getString(4)); // description
             ex.setDay(res.getString(5)); // day
             ex.setMonth(res.getString(6)); // month
@@ -187,7 +217,7 @@ public class ExpenseDao {
             ex.setId(res.getInt(0)); // expense id
             ex.setUserId(res.getInt(1)); // user id
             ex.setCategoryId(res.getInt(2)); // category id
-            ex.setCost(new BigDecimal(res.getInt(3)).movePointLeft(2)); // cost
+            ex.setCost(new BigDecimal(res.getLong(3)).movePointLeft(2)); // cost
             ex.setDescription(res.getString(4)); // description
             ex.setDay(res.getString(5)); // day
             ex.setMonth(res.getString(6)); // month

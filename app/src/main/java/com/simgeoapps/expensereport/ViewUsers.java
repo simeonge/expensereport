@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * Activity to display the list of users.
- * @author Simeon
  */
 public class ViewUsers extends ListActivity {
 
@@ -36,6 +35,7 @@ public class ViewUsers extends ListActivity {
     /** Action mode for the context menu. */
     private ActionMode aMode;
 
+    /** Call back methods for the context menu. */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
         /** To temporarily store listener when removed. */
@@ -91,7 +91,7 @@ public class ViewUsers extends ListActivity {
             // ((ArrayAdapter<Expense>) getListAdapter()).notifyDataSetChanged();
             // prevent item selection when context menu is inactive
             // doesn't work if called in same thread and item remains highlighted;
-            // calling from new thread as a work around
+            // calling from new thread as a workaround
             lv.post(new Runnable() {
                 @Override
                 public void run() {
@@ -117,8 +117,6 @@ public class ViewUsers extends ListActivity {
 
         @Override
         protected void onPostExecute(List<User> result) {
-            // showDialog("Downloaded " + result + " bytes");
-            // use the SimpleCursorAdapter to show the elements in a ListView
             final ArrayAdapter<User> adapter = new ArrayAdapter<>(ViewUsers.this,
                     android.R.layout.simple_list_item_activated_1, result);
             setListAdapter(adapter);
@@ -138,7 +136,6 @@ public class ViewUsers extends ListActivity {
                     // start ViewCategories activity
                     Intent intent = new Intent(ViewUsers.this, ViewCategories.class);
                     startActivity(intent);
-                    overridePendingTransition(0,0);
                 }
             });
 
@@ -158,6 +155,7 @@ public class ViewUsers extends ListActivity {
                 }
             });
 
+            // prompt user for name if no users exist
             if (result.size() == 0) {
                 addUser();
             }
@@ -176,6 +174,7 @@ public class ViewUsers extends ListActivity {
         @Override
         protected void onPostExecute(User result) {
             // get adapter
+            @SuppressWarnings("unchecked")
             ArrayAdapter<User> adapter = (ArrayAdapter<User>) getListAdapter();
             // add new user to adapter and update view
             adapter.add(result);
@@ -194,8 +193,9 @@ public class ViewUsers extends ListActivity {
 
         @Override
         protected void onPostExecute(User result) {
+            // refresh view
+            @SuppressWarnings("unchecked")
             ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
-            aa.add(result); // add user back to adapter
             aa.notifyDataSetChanged();
         }
     }
@@ -211,6 +211,7 @@ public class ViewUsers extends ListActivity {
 
         @Override
         protected void onPostExecute(User result) {
+            @SuppressWarnings("unchecked")
             ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
             aa.remove(result); // remove from adapter
             aa.notifyDataSetChanged(); // update view
@@ -285,6 +286,7 @@ public class ViewUsers extends ListActivity {
     private void editUser() {
         // retrieve adapter and retrieve selected user
         ListView lv = getListView();
+        @SuppressWarnings("unchecked")
         final ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
         final User userToEdi = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
@@ -340,8 +342,6 @@ public class ViewUsers extends ListActivity {
                     enterName.setError("This user already exists.");
                 } else {
                     // can be changed
-                    ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
-                    aa.remove(userToEdi); // remove user from adapter
                     userToEdi.setName(username);
                     new EditUser().execute(userToEdi); // change name and add it back
                     dia.dismiss();
@@ -370,6 +370,7 @@ public class ViewUsers extends ListActivity {
 
         // get list view and list adapter
         ListView lv = getListView();
+        @SuppressWarnings("unchecked")
         final ArrayAdapter<User> aa = (ArrayAdapter<User>) getListAdapter();
         final User userToDel = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
@@ -409,16 +410,13 @@ public class ViewUsers extends ListActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu
         getMenuInflater().inflate(R.menu.menu_view_users, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement

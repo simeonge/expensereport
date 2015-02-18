@@ -10,13 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Category DAO. Supports adding, editing categories. Support for deleting categories pending.
- * Created by Simeon on 10/11/2014.
+ * Category DAO. Supports adding, editing, and deleting categories.
  */
 public class CategoryDao {
-    // Database fields
+    /** Instance of database which will be queried. */
     private SQLiteDatabase database;
+
+    /** Instance of the database helper class. */
     private ExpenseData dbHelper;
+
+    // columns
     private String[] colsToReturn = { ExpenseData.CATEGORY_ID, ExpenseData.USER_ID,
             ExpenseData.CATEGORY_NAME };
 
@@ -24,6 +27,7 @@ public class CategoryDao {
         dbHelper = new ExpenseData(context);
     }
 
+    // open and close DB.
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
     }
@@ -32,6 +36,12 @@ public class CategoryDao {
         dbHelper.close();
     }
 
+    /**
+     * Determines if the specified category already exists in the database for the specified user.
+     * @param category The category to be checked for existence.
+     * @param us The user for which to verify for the existing of the category.
+     * @return True if the category exists for the specified user, false otherwise.
+     */
     public boolean exists(String category, User us) {
         Cursor res = database.query(ExpenseData.CATEGORIES_TABLE, colsToReturn, ExpenseData.CATEGORY_NAME +
                 " = '" + category + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null, null, null, null);
@@ -40,6 +50,12 @@ public class CategoryDao {
         return cnt > 0;
     }
 
+    /**
+     * Inserts a new category in the database for the specified user.
+     * @param cat The name of the category to insert.
+     * @param us The user to which the category belongs.
+     * @return The inserted category.
+     */
     public Category newCategory(String cat, User us) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat);
@@ -60,6 +76,12 @@ public class CategoryDao {
         return ans;
     }
 
+    /**
+     * Updates the name of an existing category that belongs to the specified user.
+     * @param cat The category object with the new name.
+     * @param us The user to which the category belongs.
+     * @return The updated category.
+     */
     public Category editCategory(Category cat, User us) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat.getCategory());
@@ -68,6 +90,12 @@ public class CategoryDao {
         return cat;
     }
 
+    /**
+     * Deletes an existing category that belongs to the specified user.
+     * @param cat The category to be deleted.
+     * @param us The user to which the category belongs.
+     * @return The deleted category.
+     */
     public Category deleteCategory(Category cat, User us) {
         // will delete category only. expenses will remain but cannot be accessed
         database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.USER_ID + " = '" + us.getId()
@@ -75,6 +103,11 @@ public class CategoryDao {
         return cat;
     }
 
+    /**
+     * Retrieves all categories for the specified user.
+     * @param us The user whose categories to retrieve.
+     * @return The list of retrieved categories.
+     */
     public List<Category> getCategories(User us) {
         // must return all categories for a certain user
         List<Category> ans = new ArrayList<>();

@@ -34,7 +34,6 @@ import java.util.List;
 
 /**
  * Activity to display list of categories for a user.
- * @author Simeon
  */
 public class ViewCategories extends ListActivity {
 
@@ -149,6 +148,7 @@ public class ViewCategories extends ListActivity {
             return new DatePickerDialog(getActivity(), this, year, month, day);
         }
 
+        @Override
         public void onDateSet(DatePicker view, int year, int month, int day) {
             // specify new date in config
             Calendar c = Calendar.getInstance();
@@ -210,7 +210,6 @@ public class ViewCategories extends ListActivity {
                     Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
                     intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
                     startActivity(intent);
-                    overridePendingTransition(0,0);
                 }
             });
 
@@ -243,6 +242,7 @@ public class ViewCategories extends ListActivity {
 
         @Override
         protected void onPostExecute(Category result) {
+            @SuppressWarnings("unchecked")
             ArrayAdapter<Category> adapter = (ArrayAdapter<Category>) getListAdapter();
             adapter.add(result);
             adapter.notifyDataSetChanged();
@@ -260,8 +260,9 @@ public class ViewCategories extends ListActivity {
 
         @Override
         protected void onPostExecute(Category result) {
+            // refresh view
+            @SuppressWarnings("unchecked")
             ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
-            aa.add(result); // add category back to adapter
             aa.notifyDataSetChanged();
         }
     }
@@ -277,6 +278,7 @@ public class ViewCategories extends ListActivity {
 
         @Override
         protected void onPostExecute(Category result) {
+            @SuppressWarnings("unchecked")
             ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
             aa.remove(result); // remove from adapter
             aa.notifyDataSetChanged(); // update view
@@ -327,9 +329,6 @@ public class ViewCategories extends ListActivity {
 
         dia.show();
 
-        // retrieve adapter to add category to the list
-        final ArrayAdapter<Category> adapter = (ArrayAdapter<Category>) getListAdapter();
-
         // override onclick for OK button; must be done after show()ing to retrieve OK button
         dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -357,6 +356,7 @@ public class ViewCategories extends ListActivity {
     private void editCategory() {
         // retrieve adapter and retrieve selected category
         ListView lv = getListView();
+        @SuppressWarnings("unchecked")
         final ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
         final Category catToEdi = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
@@ -412,7 +412,6 @@ public class ViewCategories extends ListActivity {
                     enterName.setError("This category already exists.");
                 } else {
                     // can be changed
-                    aa.remove(catToEdi); // remove category from adapter
                     catToEdi.setCategory(catName); // change name in object
                     new EditCategory().execute(catToEdi);
                     dia.dismiss();
@@ -440,6 +439,7 @@ public class ViewCategories extends ListActivity {
 
         // get list view and list adapter
         ListView lv = getListView();
+        @SuppressWarnings("unchecked")
         final ArrayAdapter<Category> aa = (ArrayAdapter<Category>) getListAdapter();
         final Category catToDel = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
 
@@ -520,16 +520,13 @@ public class ViewCategories extends ListActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu
         getMenuInflater().inflate(R.menu.view_categories, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a w activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_new) {
             addCategory();
@@ -537,7 +534,6 @@ public class ViewCategories extends ListActivity {
         } else if (id == R.id.switch_user) {
             Intent intent = new Intent(this, ViewUsers.class);
             startActivity(intent); // start user activity
-            overridePendingTransition(0,0);
             return true;
         }
         return super.onOptionsItemSelected(item);

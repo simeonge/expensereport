@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 /**
  * User model.
- * Created by Simeon on 11/4/2014.
  */
 public class User implements Serializable{
-
+    // data fields; these match the columns in DB
     private int id;
     private String name;
 
+    // getters and setters
     public int getId() {
         return id;
     }

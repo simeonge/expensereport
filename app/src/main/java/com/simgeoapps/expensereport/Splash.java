@@ -7,7 +7,6 @@ import android.os.Handler;
 
 /**
  * Launcher activity.
- * @author Simeon
  */
 public class Splash extends Activity {
 
@@ -16,20 +15,20 @@ public class Splash extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        /* New Handler to start the Menu-Activity
-         * and close this Splash-Screen after some seconds.*/
+        // handler to start the either users or categories activity and close after one second
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
                 GlobalConfig gc = (GlobalConfig) getApplication();
+                // if there are 0 or more than one users, start user activity to allow selection
                 if (gc.getCurrentUser() == null) {
                     Intent it = new Intent(Splash.this, ViewUsers.class);
                     startActivity(it);
-                    overridePendingTransition(0,0);
+                    overridePendingTransition(0,0); // no animation
                 } else {
                     Intent it = new Intent(Splash.this, ViewCategories.class);
                     startActivity(it);
-                    overridePendingTransition(0,0);
+                    overridePendingTransition(0,0); // no animation
                 }
                 Splash.this.finish();
             }

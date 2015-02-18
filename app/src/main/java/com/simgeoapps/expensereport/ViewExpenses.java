@@ -29,7 +29,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Pattern;
 
-
+/**
+ * Activity to display list of expenses for user's category.
+ */
 public class ViewExpenses extends ListActivity {
 
     /** Expenses data source. */
@@ -44,12 +46,10 @@ public class ViewExpenses extends ListActivity {
     /** Currently selected category, as specified by intent received from ViewCategories class. */
     private Category curCat;
 
-    /** Sum total of the current category, as given by intent received from ViewCategories class. */
-    private String totalCost;
-
     /** Action mode for the context menu. */
     private ActionMode aMode;
 
+    /** Call back methods for the context menu. */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
         /** Title which displays category name. */
@@ -77,6 +77,11 @@ public class ViewExpenses extends ListActivity {
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
+                case R.id.action_edit:
+                    // edit selected expense
+                    editExpense();
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
                 case R.id.action_del:
                     // delete selected expense
                     deleteExpense();
@@ -123,7 +128,7 @@ public class ViewExpenses extends ListActivity {
         @Override
         protected void onPostExecute(final List<Expense> result) {
             // use adapter to show elements in list
-            ArrayAdapter<Expense> aa = new ArrayAdapter<Expense>(ViewExpenses.this,
+            ArrayAdapter<Expense> aa = new ArrayAdapter<>(ViewExpenses.this,
                     android.R.layout.simple_list_item_activated_1, result);
             setListAdapter(aa);
 
@@ -158,6 +163,7 @@ public class ViewExpenses extends ListActivity {
 
         @Override
         protected void onPostExecute(Expense result) {
+            @SuppressWarnings("unchecked")
             ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
             aa.add(result);
             aa.notifyDataSetChanged();
@@ -174,13 +180,18 @@ public class ViewExpenses extends ListActivity {
     private class EditExpense extends AsyncTask<Expense, Void, Expense> {
         @Override
         protected Expense doInBackground(Expense... params) {
-            // TODO use
-            return null;
+            return exSource.editExpense(params[0]);
         }
 
         @Override
         protected void onPostExecute(Expense result) {
+            @SuppressWarnings("unchecked")
+            ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+            aa.notifyDataSetChanged();
 
+            // update total
+            TextView total = (TextView) findViewById(R.id.exTotal);
+            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
         }
     }
 
@@ -195,6 +206,7 @@ public class ViewExpenses extends ListActivity {
 
         @Override
         protected void onPostExecute(Expense result) {
+            @SuppressWarnings("unchecked")
             ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
             aa.remove(result); // remove selected item from adapter
             aa.notifyDataSetChanged();
@@ -224,7 +236,7 @@ public class ViewExpenses extends ListActivity {
         enterCost.setInputType(InputType.TYPE_CLASS_NUMBER); // to accept dollar amount
         enterCost.setKeyListener(DigitsKeyListener.getInstance("0123456789.")); // accept digits
         enterDesc.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES); // description text
-        enterDesc.setFilters(new InputFilter[]{new InputFilter.LengthFilter(20)});
+        enterDesc.setFilters(new InputFilter[]{new InputFilter.LengthFilter(40)});
         ll.addView(enterCost);
         ll.addView(enterDesc);
         builder.setView(ll);
@@ -255,9 +267,6 @@ public class ViewExpenses extends ListActivity {
 
         dia.show();
 
-        // retrieve adapter to add category to the list
-        final ArrayAdapter<Expense> adapter = (ArrayAdapter<Expense>) getListAdapter();
-
         // override onclick for OK button; must be done after show()ing to retrieve OK button
         dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -284,7 +293,80 @@ public class ViewExpenses extends ListActivity {
      * Method to edit selected expense. Called when Edit button is clicked in context menu.
      */
     private void editExpense() {
-        // TODO implement
+        // retrieve adapter and retrieve selected expense
+        ListView lv = getListView();
+        @SuppressWarnings("unchecked")
+        final ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
+        final Expense exToEdi = aa.getItem(lv.getCheckedItemPosition()); // get item at checked pos
+
+        // build dialog to ask for expense details
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit expense");
+        builder.setMessage("Please enter expense details.");
+
+        // construct input fields
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        final EditText enterCost = new EditText(this);
+        final EditText enterDesc = new EditText(this);
+        enterCost.setText(exToEdi.getCost().toString());
+        enterDesc.setText(exToEdi.getDescription());
+        enterCost.setInputType(InputType.TYPE_CLASS_NUMBER); // to accept dollar amount
+        enterCost.setKeyListener(DigitsKeyListener.getInstance("0123456789.")); // accept digits
+        enterDesc.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES); // description text
+        enterDesc.setFilters(new InputFilter[]{new InputFilter.LengthFilter(40)});
+        ll.addView(enterCost);
+        ll.addView(enterDesc);
+        builder.setView(ll);
+
+        // add ok and cancel buttons
+        builder.setPositiveButton(R.string.ok, null);
+        builder.setNegativeButton(R.string.cancel, null);
+
+        // create dialog
+        final AlertDialog dia = builder.create(); // don't show yet
+
+        // set listener to description input field to click OK when done
+        enterDesc.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    // click dialog's OK when user presses Done on keyboard
+                    dia.getButton(Dialog.BUTTON_POSITIVE).performClick();
+                    handled = true;
+                }
+                return handled;
+            }
+        });
+
+        // set input mode to let keyboard appear when dialog is shown
+        dia.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        dia.show();
+
+        // override onclick for OK button; must be done after show()ing to retrieve OK button
+        dia.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // retrieve name entered
+                String cost = enterCost.getText().toString().trim();
+                String desc = enterDesc.getText().toString().trim();
+
+                // perform checks and add if pass
+                if (cost.equals("")) { // must not be empty
+                    enterCost.setError("Please enter a dollar amount.");
+                } else if (!Pattern.matches("^(\\d{1,10})?(\\.\\d{0,2})?$", cost)) { // must be $$
+                    enterCost.setError("Please enter a valid dollar amount.");
+                } else {
+                    // can be changed
+                    exToEdi.setCost(new BigDecimal(cost));
+                    exToEdi.setDescription(desc);
+                    new EditExpense().execute(exToEdi);
+                    dia.dismiss();
+                }
+            }
+        });
     }
 
     /**
@@ -293,6 +375,7 @@ public class ViewExpenses extends ListActivity {
     private void deleteExpense() {
         // get list view and list adapter
         ListView lv = getListView();
+        @SuppressWarnings("unchecked")
         ArrayAdapter<Expense> aa = (ArrayAdapter<Expense>) getListAdapter();
         int pos = lv.getCheckedItemPosition(); // get pos of selected item
         Expense del = aa.getItem(pos); // get item in adapter at position pos
@@ -319,7 +402,6 @@ public class ViewExpenses extends ListActivity {
             public void onClick(View v) {
                 Intent it = new Intent(ViewExpenses.this, ViewCategories.class);
                 startActivity(it);
-                overridePendingTransition(0,0);
             }
         });
 
@@ -348,16 +430,13 @@ public class ViewExpenses extends ListActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu
         getMenuInflater().inflate(R.menu.view_expenses, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_new) {
             addExpense();
@@ -365,7 +444,6 @@ public class ViewExpenses extends ListActivity {
         } else if (id == R.id.switch_user) {
             Intent intent = new Intent(this, ViewUsers.class);
             startActivity(intent); // start user activity
-            overridePendingTransition(0,0);
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -5,7 +5,6 @@ import java.text.NumberFormat;
 
 /**
  * Expense model.
- * Created by Simeon on 10/5/2014.
  */
 public class Expense {
     // fields corresponding to the expense table columns

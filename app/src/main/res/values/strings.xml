@@ -23,7 +23,7 @@
     <string name="save">Save</string>
     <string name="view_expenses">View expenses</string>
     <string name="view_categories">View categories</string>
-    <string name="view_users">Select account</string>
+    <string name="view_users">Select user</string>
     <string name="add_new">Add new</string>
 
     <!-- fragment level -->

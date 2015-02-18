@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Category model.
- * Created by Simeon on 10/5/2014.
  */
 public class Category implements Serializable{
     // fields corresponding to the category table columns
