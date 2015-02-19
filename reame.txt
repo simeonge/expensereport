@@ -1,0 +1,8 @@
+Coin - Expense Tracker
+
+Manage your daily personal expenses with this easy-to-use app.
+Categorize your expenses to keep track of how much you spend per month when shopping, eating out, or buying groceries.
+Monthly total per category, as well as combined total for the whole month, is calculated automatically.
+All data is stored locally on the device.
+
+Launcher icons generated using the Android Asset Studio at http://romannurik.github.io/AndroidAssetStudio/
