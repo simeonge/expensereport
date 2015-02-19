@@ -148,6 +148,7 @@ public class ViewCategories extends ListActivity {
             return new DatePickerDialog(getActivity(), this, year, month, day);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void onDateSet(DatePicker view, int year, int month, int day) {
             // specify new date in config
