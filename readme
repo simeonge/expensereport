@@ -5,4 +5,15 @@ Categorize your expenses to keep track of how much you spend per month when shop
 Monthly total per category, as well as combined total for the whole month, is calculated automatically.
 All data is stored locally on the device.
 
+App can be downloaded at: https://play.google.com/store/apps/details?id=com.simgeoapps.expensereport
+
+Version updates
+1 / 1.0.0 - Release to Google Play(TM)
+2 / 1.0.1 -
+    Added default categories for new users.
+    Fixed Expenses activity back button issue, to refresh categories totals
+    Deleting category deletes expenses; deleting user deletes categories and expenses
+    Category total in Expenses activity is stored in variable to improve performance
+
 Launcher icons generated using the Android Asset Studio at http://romannurik.github.io/AndroidAssetStudio/
+Google Play is a trademark of Google Inc.
