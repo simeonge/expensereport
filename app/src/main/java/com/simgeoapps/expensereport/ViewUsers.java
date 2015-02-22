@@ -168,7 +168,21 @@ public class ViewUsers extends ListActivity {
     private class AddUser extends AsyncTask<String, Void, User> {
         @Override
         protected User doInBackground(String... params) {
-            return uSource.newUser(params[0]);
+            User newU = uSource.newUser(params[0]);
+
+            // create template
+            // open data source for categories
+            CategoryDao cSource = new CategoryDao(ViewUsers.this);
+            cSource.open();
+            cSource.newCategory("Rent", newU);
+            cSource.newCategory("Bills", newU);
+            cSource.newCategory("Groceries", newU);
+            cSource.newCategory("Eating out", newU);
+            cSource.newCategory("Shopping", newU);
+            cSource.newCategory("Gas", newU);
+            cSource.close();
+
+            return newU;
         }
 
         @Override
@@ -179,6 +193,10 @@ public class ViewUsers extends ListActivity {
             // add new user to adapter and update view
             adapter.add(result);
             adapter.notifyDataSetChanged();
+
+            // click on the added user
+            int pos = adapter.getPosition(result); // get position
+            getListView().performItemClick(null, pos, adapter.getItemId(pos));
         }
     }
 

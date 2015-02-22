@@ -60,30 +60,28 @@ public class UserDao {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.USER_NAME, name);
 
-        Cursor cursor = null;
-        long insertId = 0;
-
         // watch for unique constraint exception
         try {
             // returns column position, or -1 if fail
-            insertId = database.insert(ExpenseData.USERS_TABLE, null, cv);
+            long insertId = database.insert(ExpenseData.USERS_TABLE, null, cv);
 
             // query db to get id and return added user
-            cursor = database.query(ExpenseData.USERS_TABLE, colsToReturn, ExpenseData.USER_ID +
+            Cursor cursor = database.query(ExpenseData.USERS_TABLE, colsToReturn, ExpenseData.USER_ID +
                     " = " + insertId, null, null, null, null);
+
+            if (insertId > 0) {
+                cursor.moveToFirst();
+                User us = new User();
+                us.setId(cursor.getInt(0));
+                us.setName(cursor.getString(1));
+                cursor.close();
+                return us;
+            } else {
+                return null; // insertion failed
+            }
         } catch (SQLiteConstraintException ce) {
             // unique constraint violated
-        }
-
-        if (insertId > 0) {
-            cursor.moveToFirst();
-            User us = new User();
-            us.setId(cursor.getInt(0));
-            us.setName(cursor.getString(1));
-            cursor.close();
-            return us;
-        } else {
-            return null; // insertion failed
+            return null;
         }
     }
 
@@ -105,7 +103,11 @@ public class UserDao {
      * @return The deleted user.
      */
     public User deleteUser(User user) {
-        // will delete user only. categories and expenses will remain but cannot be accessed
+        // delete this user's expenses
+        database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
+        // delete user's categories
+        database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
+        // delete user
         database.delete(ExpenseData.USERS_TABLE, ExpenseData.USER_ID + " = '" + user.getId() + "'", null);
         return user;
     }
@@ -115,7 +117,7 @@ public class UserDao {
      * @return The list of retrieved users.
      */
     public List<User> getAllUsers() {
-        List<User> ans = new ArrayList<User>();
+        List<User> ans = new ArrayList<>();
 
         // query db and get all users
         Cursor res = database.query(ExpenseData.USERS_TABLE, colsToReturn, null, null, null, null, null);

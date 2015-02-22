@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -45,6 +46,9 @@ public class ViewExpenses extends ListActivity {
 
     /** Currently selected category, as specified by intent received from ViewCategories class. */
     private Category curCat;
+
+    /** The sum total of all expenses for the active category. */
+    private BigDecimal categoryTotal;
 
     /** Action mode for the context menu. */
     private ActionMode aMode;
@@ -169,9 +173,10 @@ public class ViewExpenses extends ListActivity {
             aa.notifyDataSetChanged();
 
             // update total
+            categoryTotal = categoryTotal.add(result.getCost());
             TextView total = (TextView) findViewById(R.id.exTotal);
-            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
-        }
+            total.setText("Total: " + NumberFormat.getCurrencyInstance().format(categoryTotal));
+    }
     }
 
     /**
@@ -190,8 +195,9 @@ public class ViewExpenses extends ListActivity {
             aa.notifyDataSetChanged();
 
             // update total
+            categoryTotal = categoryTotal.add(result.getCost());
             TextView total = (TextView) findViewById(R.id.exTotal);
-            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+            total.setText("Total: " + NumberFormat.getCurrencyInstance().format(categoryTotal));
         }
     }
 
@@ -212,8 +218,9 @@ public class ViewExpenses extends ListActivity {
             aa.notifyDataSetChanged();
 
             // update total
+            categoryTotal = categoryTotal.subtract(result.getCost());
             TextView total = (TextView) findViewById(R.id.exTotal);
-            total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+            total.setText("Total: " + NumberFormat.getCurrencyInstance().format(categoryTotal));
         }
     }
 
@@ -360,6 +367,7 @@ public class ViewExpenses extends ListActivity {
                     enterCost.setError("Please enter a valid dollar amount.");
                 } else {
                     // can be changed
+                    categoryTotal = categoryTotal.subtract(exToEdi.getCost());
                     exToEdi.setCost(new BigDecimal(cost));
                     exToEdi.setDescription(desc);
                     new EditExpense().execute(exToEdi);
@@ -410,8 +418,9 @@ public class ViewExpenses extends ListActivity {
         exSource.open();
 
         // display total for user, cat, month/year
+        categoryTotal = exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR));
         TextView total = (TextView) findViewById(R.id.exTotal);
-        total.setText("Total: " + exSource.getTotalCost(curUser, curCat, date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+        total.setText("Total: " + NumberFormat.getCurrencyInstance().format(categoryTotal));
 
         new GetExpenses().execute(); // retrieve display expenses for the category
     }

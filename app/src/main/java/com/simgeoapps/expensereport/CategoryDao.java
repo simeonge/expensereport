@@ -79,27 +79,26 @@ public class CategoryDao {
     /**
      * Updates the name of an existing category that belongs to the specified user.
      * @param cat The category object with the new name.
-     * @param us The user to which the category belongs.
      * @return The updated category.
      */
-    public Category editCategory(Category cat, User us) {
+    public Category editCategory(Category cat) {
         ContentValues cv = new ContentValues();
         cv.put(ExpenseData.CATEGORY_NAME, cat.getCategory());
         database.update(ExpenseData.CATEGORIES_TABLE, cv, ExpenseData.CATEGORY_ID + " = '" +
-                cat.getId() + "' AND " + ExpenseData.USER_ID + " = '" + us.getId() + "'", null);
+                cat.getId() + "'", null);
         return cat;
     }
 
     /**
      * Deletes an existing category that belongs to the specified user.
      * @param cat The category to be deleted.
-     * @param us The user to which the category belongs.
      * @return The deleted category.
      */
-    public Category deleteCategory(Category cat, User us) {
-        // will delete category only. expenses will remain but cannot be accessed
-        database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.USER_ID + " = '" + us.getId()
-                + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "'", null);
+    public Category deleteCategory(Category cat) {
+        // delete expenses for the category
+        database.delete(ExpenseData.EXPENSES_TABLE, ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "'", null);
+        // delete category
+        database.delete(ExpenseData.CATEGORIES_TABLE, ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "'", null);
         return cat;
     }
 

@@ -7,7 +7,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,9 +115,9 @@ public class ExpenseDao {
      * @param cat The category whose expenses should be included in the total.
      * @param month The expenses for this month should be included in the total.
      * @param year The expenses for this year should be included in the total.
-     * @return The formatted dollar amount of the sum total of expenses that match the criteria.
+     * @return The dollar amount of the sum total of expenses that match the criteria.
      */
-    public String getTotalCost(User us, Category cat, int month, int year) {
+    public BigDecimal getTotalCost(User us, Category cat, int month, int year) {
         String[] cols = { ExpenseData.COST_COLUMN };
         Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.USER_ID + " = '" +
                 us.getId() + "' AND " + ExpenseData.CATEGORY_ID + " = '" + cat.getId() + "' AND " +
@@ -133,8 +132,8 @@ public class ExpenseDao {
         }
         res.close();
 
-        // move decimal point and format
-        return NumberFormat.getCurrencyInstance().format(totCost.movePointLeft(2));
+        // move decimal point
+        return totCost.movePointLeft(2);
     }
 
     /**
@@ -142,9 +141,9 @@ public class ExpenseDao {
      * @param us The user whose expenses should be included in the total.
      * @param month The expenses for this month should be included in the total.
      * @param year The expenses for this year should be included in the total.
-     * @return The formatted dollar amount of the sum total of expenses that match the criteria.
+     * @return The dollar amount of the sum total of expenses that match the criteria.
      */
-    public String getTotalCost(User us, int month, int year) {
+    public BigDecimal getTotalCost(User us, int month, int year) {
         String[] cols = { ExpenseData.COST_COLUMN };
         Cursor res = database.query(ExpenseData.EXPENSES_TABLE, cols, ExpenseData.USER_ID + " = '" +
                 us.getId() + "' AND " + ExpenseData.MONTH_COLUMN + " = '" + Integer.toString(month) +
@@ -158,8 +157,8 @@ public class ExpenseDao {
         }
         res.close();
 
-        // move decimal point and format
-        return NumberFormat.getCurrencyInstance().format(totCost.movePointLeft(2));
+        // move decimal point
+        return totCost.movePointLeft(2);
     }
 
     /**

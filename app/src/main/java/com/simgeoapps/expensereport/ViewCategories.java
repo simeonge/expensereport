@@ -26,10 +26,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -48,6 +46,8 @@ public class ViewCategories extends ListActivity {
 
     /** Variable to hold currently specified date. */
     private static Calendar date;
+
+    private ArrayAdapter<Category> adapter;
 
     public static final String[] MONTHS = { "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"};
@@ -164,7 +164,8 @@ public class ViewCategories extends ListActivity {
 
             // refresh month/year total for all categories
             TextView total = (TextView) getActivity().findViewById(R.id.monYTot);
-            total.setText("Total: " + ((ViewCategories) getActivity()).getMonthlyTotal());
+            total.setText("Total: " + NumberFormat.getCurrencyInstance().format(
+                    ((ViewCategories) getActivity()).exSource.getTotalCost(gc.getCurrentUser(), month, year)));
 
             // refresh categories; must show new totals for the new month/year
             ((ArrayAdapter<Category>) ((ViewCategories) getActivity()).getListAdapter()).notifyDataSetChanged();
@@ -184,7 +185,7 @@ public class ViewCategories extends ListActivity {
         protected void onPostExecute(final List<Category> result) {
             // use adapter to show the elements in a ListView
             // change to custom layout if necessary
-            final ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(ViewCategories.this,
+            adapter = new ArrayAdapter<Category>(ViewCategories.this,
                     R.layout.row_layout_category, R.id.catLabel, result) {
                 // override get view in order to allow two items to be displayed: title and total cost
                 @Override
@@ -193,7 +194,9 @@ public class ViewCategories extends ListActivity {
                     TextView text1 = (TextView) view.findViewById(R.id.catLabel);
                     TextView text2 = (TextView) view.findViewById(R.id.catCost);
                     text1.setText(result.get(position).toString());
-                    text2.setText(exSource.getTotalCost(curUser, result.get(position), date.get(Calendar.MONTH), date.get(Calendar.YEAR)));
+                    text2.setText(NumberFormat.getCurrencyInstance().format(
+                            exSource.getTotalCost(curUser, result.get(position),
+                                    date.get(Calendar.MONTH), date.get(Calendar.YEAR))));
                     return view;
                 }
             };
@@ -256,7 +259,7 @@ public class ViewCategories extends ListActivity {
     private class EditCategory extends AsyncTask<Category, Void, Category> {
         @Override
         protected Category doInBackground(Category... params) {
-            return catSource.editCategory(params[0], curUser); // change in db;
+            return catSource.editCategory(params[0]); // change in db;
         }
 
         @Override
@@ -274,7 +277,7 @@ public class ViewCategories extends ListActivity {
     private class DeleteCategory extends AsyncTask<Category, Void, Category> {
         @Override
         protected Category doInBackground(Category... params) {
-            return catSource.deleteCategory(params[0], curUser);
+            return catSource.deleteCategory(params[0]);
         }
 
         @Override
@@ -285,8 +288,66 @@ public class ViewCategories extends ListActivity {
             aa.notifyDataSetChanged(); // update view
             // update total
             TextView total = (TextView) findViewById(R.id.monYTot);
-            total.setText("Total: " + getMonthlyTotal());
+            total.setText("Total: " + NumberFormat.getCurrencyInstance().format(
+                    exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR))));
         }
+    }
+
+    /**
+     * Retrieve all categories for the current user, populate the list view with them, and set listeners.
+     */
+    private void populateCategories() {
+        final List<Category> result = catSource.getCategories(curUser);
+
+        // use adapter to show the elements in a ListView
+        // change to custom layout if necessary
+        adapter = new ArrayAdapter<Category>(ViewCategories.this,
+                R.layout.row_layout_category, R.id.catLabel, result) {
+            // override get view in order to allow two items to be displayed: title and total cost
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView text1 = (TextView) view.findViewById(R.id.catLabel);
+                TextView text2 = (TextView) view.findViewById(R.id.catCost);
+                text1.setText(result.get(position).toString());
+                text2.setText(NumberFormat.getCurrencyInstance().format(
+                        exSource.getTotalCost(curUser, result.get(position),
+                                date.get(Calendar.MONTH), date.get(Calendar.YEAR))));
+                return view;
+            }
+        };
+        setListAdapter(adapter);
+
+        final ListView lv = getListView();
+        // set item onclick listener to each item in list
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                // retrieve selected category
+                Category cat = adapter.getItem(i);
+
+                // pass category to ViewExpenses activity and start it
+                Intent intent = new Intent(ViewCategories.this, ViewExpenses.class);
+                intent.putExtra(IntentTags.CURRENT_CATEGORY, cat);
+                startActivity(intent);
+            }
+        });
+
+        // set long click listener, to display CAB
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            // Called when the user long-clicks on an item
+            public boolean onItemLongClick(AdapterView<?> aView, View view, int i, long l) {
+                if (aMode != null) {
+                    return false;
+                }
+                lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                // mark item at position i as selected
+                lv.setItemChecked(i, true);
+                // Start the CAB using the ActionMode.Callback defined above
+                aMode = ViewCategories.this.startActionMode(mActionModeCallback);
+                return true;
+            }
+        });
     }
 
     /**
@@ -455,21 +516,6 @@ public class ViewCategories extends ListActivity {
         });
     }
 
-    /**
-     * Calculates the sum total of all expenses for this user and specified month/year
-     * @return The formatted dollar amount that is the sum total.
-     */
-    public String getMonthlyTotal() {
-        List<Category> lc = catSource.getCategories(curUser);
-        Iterator<Category> itr =  lc.iterator();
-        BigDecimal total = new BigDecimal(0);
-        while (itr.hasNext()) {
-            total = total.add(new BigDecimal(exSource.getTotalCost(curUser, itr.next(), date.get(Calendar.MONTH), date.get(Calendar.YEAR)).substring(1).replace(",", "")));
-        }
-
-        return NumberFormat.getCurrencyInstance().format(total);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -498,17 +544,31 @@ public class ViewCategories extends ListActivity {
         catSource = new CategoryDao(this);
         catSource.open();
 
-        // display month/year total for this user for all categories
+        // calculate and display month/year total for this user for all categories
         TextView total = (TextView) findViewById(R.id.monYTot);
-        total.setText("Total: " + getMonthlyTotal());
+        total.setText("Total: " + NumberFormat.getCurrencyInstance().format(
+                exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR))));
 
-        new GetCategories().execute(); // display user's categories
+        // retrieve categories asynchronously
+        // doesn't work when getting adapter in onResume method
+        // new GetCategories().execute();
+
+        populateCategories(); // retrieve categories and populate view
     }
 
     @Override
     protected void onResume() {
         catSource.open();
         exSource.open();
+
+        @SuppressWarnings("unchecked")
+        ArrayAdapter<Category> aa = ((ArrayAdapter<Category>) getListAdapter());
+        aa.notifyDataSetChanged();
+
+        // calculate and display month/year total for this user for all categories
+        TextView total = (TextView) findViewById(R.id.monYTot);
+        total.setText("Total: " + NumberFormat.getCurrencyInstance().format(
+                exSource.getTotalCost(curUser, date.get(Calendar.MONTH), date.get(Calendar.YEAR))));
         super.onResume();
     }
 
