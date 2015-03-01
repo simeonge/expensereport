@@ -1,11 +1,31 @@
 Coin - Expense Tracker
 
 Manage your daily personal expenses with this easy-to-use app.
-Categorize your expenses to keep track of how much you spend per month when shopping, eating out, or buying groceries.
-Monthly total per category, as well as combined total for the whole month, is calculated automatically.
-All data is stored locally on the device.
 
-App can be downloaded at: https://play.google.com/store/apps/details?id=com.simgeoapps.expensereport
+Features:
+Uses SQLite to store expenses on the user's device.
+
+Expenses are categorized by Category and User. Expenses belong to a category and categories belong to a user.
+First, user adds a User account by specifying his/her name. Then user add Categories for which
+he/she wants to track expenses. Then user can add expenses by specifying the amount spent.
+
+The Categories and their totals are displayed in the ViewCategories activity. The total is the
+amount spent for that category during the specified month. User can specify past or future months
+to see or add expenses for past of future months. The total of all expenses for the month for all
+categories is also displayed.
+
+The ViewExpenses activity displayed all the expenses for the specified category, for the specified
+month, as well as the total for the category.
+
+User can edit and delete expenses, categories, and users by long-clicking the item in the view.
+Deleting categories deletes all associated expenses. Deleting users deletes all associated expenses
+and categories. User is shown a confirmation modal when deleting users or categories.
+
+Validations are active on input fields to ensure valid entry for fields like cost where only valid
+dollar amounts are allowed, or category name where user might accidentally attempt to add a category
+that already exists.
+
+Most database operations occur asynchronously, using AsyncTask to prevent ANRs and freezing of the UI.
 
 Version updates
 1 / 1.0.0 - Release to Google Play(TM)
