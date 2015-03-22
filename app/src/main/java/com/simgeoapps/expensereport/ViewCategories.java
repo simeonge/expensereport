@@ -47,6 +47,9 @@ public class ViewCategories extends ListActivity {
     /** Variable to hold currently specified date. */
     private static Calendar date;
 
+    /** Variable to hold the title TextView of the activity. Displays month and year. */
+    private TextView acTitle;
+
     private ArrayAdapter<Category> adapter;
 
     public static final String[] MONTHS = { "January", "February", "March", "April", "May", "June",
@@ -58,11 +61,8 @@ public class ViewCategories extends ListActivity {
     /** Call back methods for the context menu. */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
-        /** To temporarily store listener when removed. */
-        private AdapterView.OnItemClickListener lstn;
-
-        /** Title which displays month and year. */
-        private TextView title;
+        /** To temporarily store items' listener when removed. */
+        private AdapterView.OnItemClickListener iLstn;
 
         // Called when the action mode is created; startActionMode() was called
         @Override
@@ -70,6 +70,13 @@ public class ViewCategories extends ListActivity {
             // Inflate a menu resource providing context menu items
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.context_categories, menu);
+
+            // disable listeners here; moved from onPrepareActionMode
+            ListView lv = getListView();
+            iLstn = lv.getOnItemClickListener();
+            lv.setOnItemClickListener(null);
+            // disable title on click which would open date picker
+            acTitle.setClickable(false);
             return true;
         }
 
@@ -77,15 +84,18 @@ public class ViewCategories extends ListActivity {
         // may be called multiple times if the mode is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            // EDIT: This method does not get called anymore!
+            // ANDROID ISSUE: 159527
+            // moved code to onCreateActionMode
+
             // disable other listeners temporarily to prevent multiple actions
             // disable on item click which would start expenses activity
-            ListView lv = getListView();
-            lstn = lv.getOnItemClickListener();
-            lv.setOnItemClickListener(null);
-            // disable title on click which would open date picker
-            title = (TextView) findViewById(R.id.catMon);
-            title.setClickable(false);
-            return true; // Return false if nothing is done
+//            ListView lv = getListView();
+//            iLstn = lv.getOnItemClickListener();
+//            lv.setOnItemClickListener(null);
+//            // disable title on click which would open date picker
+//            acTitle.setClickable(false);
+            return false; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item
@@ -127,8 +137,8 @@ public class ViewCategories extends ListActivity {
             aMode = null;
 
             // restore listeners
-            getListView().setOnItemClickListener(lstn);
-            title.setClickable(true);
+            getListView().setOnItemClickListener(iLstn);
+            acTitle.setClickable(true);
         }
     };
 
@@ -527,9 +537,9 @@ public class ViewCategories extends ListActivity {
         date = settings.getDate();
 
         // set month selector listener
-        final TextView title = (TextView) findViewById(R.id.catMon);
-        title.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
-        title.setOnClickListener(new View.OnClickListener() {
+        acTitle = (TextView) findViewById(R.id.catMon);
+        acTitle.setText(MONTHS[date.get(Calendar.MONTH)] + " " + date.get(Calendar.YEAR));
+        acTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new DateSelector().show(getFragmentManager(), "configDatePicker");

@@ -65,6 +65,10 @@ public class ViewExpenses extends ListActivity {
             // Inflate a menu resource providing context menu items
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.context_expenses, menu);
+
+            // disable listener here; moved from onPrepareActionMode
+            title = (TextView) findViewById(R.id.exCat);
+            title.setClickable(false); // prevent navigation away from activity
             return true;
         }
 
@@ -72,9 +76,11 @@ public class ViewExpenses extends ListActivity {
         // may be called multiple times if the mode is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            title = (TextView) findViewById(R.id.exCat);
-            title.setClickable(false); // prevent navigation away from activity
-            return true; // Return false if nothing is done
+            // EDIT 03/22/15: This method does not get called anymore
+            // ANDROID ISSUE: 159527
+//            title = (TextView) findViewById(R.id.exCat);
+//            title.setClickable(false); // prevent navigation away from activity
+            return false; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item

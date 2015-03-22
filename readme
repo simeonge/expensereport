@@ -28,6 +28,7 @@ Version updates
     Fixed Expenses activity back button issue, to refresh categories totals
     Deleting category deletes expenses; deleting user deletes categories and expenses
     Category total in Expenses activity is stored in variable to improve performance
+3 / 1.0.2 - Fixed compatibility issue with Android version 22
 
 Launcher icons generated using the Android Asset Studio at http://romannurik.github.io/AndroidAssetStudio/
 Google Play is a trademark of Google Inc.

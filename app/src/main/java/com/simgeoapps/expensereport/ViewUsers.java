@@ -47,6 +47,11 @@ public class ViewUsers extends ListActivity {
             // Inflate a menu resource providing context menu items
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.context_users, menu);
+
+            // disable listeners here
+            ListView lv = getListView();
+            lstn = lv.getOnItemClickListener();
+            lv.setOnItemClickListener(null);
             return true;
         }
 
@@ -56,10 +61,10 @@ public class ViewUsers extends ListActivity {
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             // disable other listeners temporarily to prevent multiple actions
             // disable on item click which would start expenses activity
-            ListView lv = getListView();
-            lstn = lv.getOnItemClickListener();
-            lv.setOnItemClickListener(null);
-            return true; // Return false if nothing is done
+//            ListView lv = getListView();
+//            lstn = lv.getOnItemClickListener();
+//            lv.setOnItemClickListener(null);
+            return false; // Return false if nothing is done
         }
 
         // Called when the user selects a contextual menu item
